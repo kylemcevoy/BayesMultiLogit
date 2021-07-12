@@ -1,0 +1,12 @@
+Package: BayesMultiLogit
+Type: Package
+Title: Data Augmentation methods for Bayesian Multinomial Logistic Regression
+Version: 1.0
+Date: 2020-11-14
+Author: Jared Fisher and Kyle McEvoy
+Maintainer: Kyle McEvoy <kylemcevoy@berkeley.edu>
+Description: This package includes functions for multiple different types of data augmented Bayesian Multinomial Logistic Regression.
+License: What license is it under?
+Imports: Rcpp (>= 1.0.5)
+LinkingTo: Rcpp, RcppArmadillo
+RoxygenNote: 7.1.1
