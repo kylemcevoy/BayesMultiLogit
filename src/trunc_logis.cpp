@@ -1,3 +1,13 @@
+// This code was written working off the pseudocode included in a 2006 paper
+// by Chris C. Holmes and Leonhard Held and with corrections suggested by
+// by Ralf van der Lans as found in the 2011 response:
+
+// 1. Holmes,  C.  C.  and  Held,  L.  (2006). Bayesian  auxiliary  variable  models
+// for  binary  and  multinomialregression. Bayesian Analysis, 1(1):145–168.
+
+// 2. Holmes, C. C. and Held, L. (2011). Response to van der Lans.
+// Bayesian Analysis, 6(2):357-358.
+
 //truncated logistic sampler
 
 #include <Rcpp.h>

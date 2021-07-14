@@ -14,6 +14,9 @@
 // along with this program.  If not, see
 // <http://www.gnu.org/licenses/>.
 
+//  This file is part of the R package BayesLogit as found at https://github.com/jwindle/BayesLogit-Thesis,
+// distributed under the GNU General Public License version 3 or later and without ANY warranty, implied or otherwise.
+
 //////////////////////////////////////////////////////////////////////
 
 // YOU MUST ALWAYS CALL GetRNGSeed() and PutRNGSeed() WHEN USING THESE FUNCTIONS!!!

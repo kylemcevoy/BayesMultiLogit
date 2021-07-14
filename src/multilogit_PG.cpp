@@ -1,13 +1,11 @@
-
-
 // Copyright 2013 Nick Polson, James Scott, and Jesse Windle.
 
-// This file is part of BayesLogit, distributed under the GNU General Public
-// License version 3 or later and without ANY warranty, implied or otherwise.
+// This file is part of the R package BayesLogit as found at https://github.com/jwindle/BayesLogit-Thesis,
+// distributed under the GNU General Public License version 3 or later and without ANY warranty, implied or otherwise.
 
 // 14.07.13, Tracy Holsclaw found bug in m1.j = ...
 
-//Rewritten for C++ by Kyle McEvoy and Jared Fisher.
+//Rewritten for C++ by Kyle McEvoy and Jared Fisher 2021.
 
 //
 
@@ -52,9 +50,9 @@ using namespace arma;
 //' out2 <- multilogit_PG_C(Y, X, n_sample = 4000, n_burn = 2000)
 // [[Rcpp::export]]
 List multilogit_PG_C(NumericMatrix Y_,
-                        NumericMatrix X_, 
-                        size_t n_sample = 1000,
-                        size_t n_burn = 200) {
+                     NumericMatrix X_, 
+                     size_t n_sample = 1000,
+                     size_t n_burn = 200) {
   
 
   size_t N = Y_.nrow();
