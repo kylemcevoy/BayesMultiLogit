@@ -7,15 +7,15 @@ regression using data-augmentation methods.
 The code for all functions using the Holmes-Held methods were written by us following the pseudo-code template provided in the paper:
 "Bayesian Auxiliary Variable Models for Binary and Multinomial Regression" by Chris C. Holmes and Leonhard Held, Bayesian Analysis (2006).
 
-The code for the Polya-Gamma functions was copied from the public repository https://github.com/jwindle/BayesLogit-Thesis. This repository
-includes code written by Jesse Windle as part of their thesis.
+The code for the Polya-Gamma functions was copied from the public repository https://github.com/jgscott/helloPG by James G. Scott who was adapting code
+from the package https://github.com/jwindle/BayesLogit. The BayesLogit repository includes code written by Jesse Windle, Nicholas Polson, and James G. Scott.
 
 The multivariate normal density function was copied from work by Nino Hardt, Dicko Ahmadou, Benjamin Christoffersen on the Rcpp Gallery
 located at https://gallery.rcpp.org/articles/dmvnorm_arma/.
 
-All of the work in this package falls under the Gnu General Public License Version 3 found at https://www.gnu.org/licenses/gpl-3.0.en.html.
+# License   
 
-Copyright (C) 2021  Kyle McEvoy and Jared Fisher
+All of the work in this package falls under the Gnu General Public License Version 3 found at https://www.gnu.org/licenses/gpl-3.0.en.html.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
