@@ -1,9 +1,7 @@
-// Copyright 2013 Nick Polson, James Scott, and Jesse Windle.
-
-// This file is part of the R package BayesLogit as found at https://github.com/jwindle/BayesLogit-Thesis,
-// distributed under the GNU General Public License version 3 or later and without ANY warranty, implied or otherwise.
-
-// 14.07.13, Tracy Holsclaw found bug in m1.j = ...
+// This file was written by Kyle R. McEvoy and Jared Fisher adapting a file which was
+// part of the R package BayesLogit as found at https://github.com/jwindle/BayesLogit-Thesis,
+// distributed under the GNU General Public License version 3 or later and without ANY warranty,
+// implied or otherwise.
 
 //Rewritten for C++ by Kyle McEvoy and Jared Fisher 2021.
 

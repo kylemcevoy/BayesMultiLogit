@@ -1,4 +1,4 @@
-// This code was written working off the pseudocode included in a 2006 paper
+// This code was written by Kyle McEvoy working off the pseudocode included in a 2006 paper
 // by Chris C. Holmes and Leonhard Held and with corrections suggested by
 // by Ralf van der Lans as found in the 2011 response:
 

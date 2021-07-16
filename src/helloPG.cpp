@@ -1,4 +1,8 @@
-// Copyright 2012 Jesse Windle - jwindle@ices.utexas.edu
+// This file is part of the R package helloPG as found at https://github.com/jgscott/helloPG, 
+// written by James Scott adapting code originally written by Jesse Windle in the package
+// BayesLogit https://github.com/jwindle/BayesLogit. It is distributed under the GNU General
+// Public License version 3 or later and without ANY warranty, implied or otherwise.
+// Downloaded in 2021 by Kyle McEvoy.
 
 // This program is free software: you can redistribute it and/or
 // modify it under the terms of the GNU General Public License as
@@ -13,9 +17,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see
 // <http://www.gnu.org/licenses/>.
-
-// This file is part of the R package BayesLogit as found at https://github.com/jwindle/BayesLogit-Thesis,
-// distributed under the GNU General Public License version 3 or later and without ANY warranty, implied or o
 
 #include "RcppArmadillo.h"
 #include <R_ext/Utils.h>
