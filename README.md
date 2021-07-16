@@ -1,7 +1,6 @@
 # BayesMultiLogit
-BayesMultiLogit
 
-This is a package developed by Kyle R. McEvoy and Jared Fisher to implement a number of methods for performing Bayesian multinomial logistic
+This is an R package developed by Kyle R. McEvoy and Jared Fisher to implement a number of methods for performing Bayesian multinomial logistic
 regression using data-augmentation methods.
 
 The code for all functions using the Holmes-Held methods were written by us following the pseudo-code template provided in the paper:
