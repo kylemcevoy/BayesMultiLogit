@@ -14,7 +14,9 @@ multilogit(
   prior = "flat",
   prior_mean = NULL,
   prior_var = NULL,
-  reference_cat = NULL
+  reference_cat = NULL,
+  probs = TRUE,
+  progress = TRUE
 )
 }
 \arguments{

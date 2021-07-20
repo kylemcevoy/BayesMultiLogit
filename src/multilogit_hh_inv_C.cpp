@@ -17,11 +17,12 @@ using namespace arma;
 
 //' Multinomial Logistic Regression using the Holmes-Held Method
 //' 
-//' @description This function implements the Holmes-Held method for
+//' This function implements the Holmes-Held method for
 //' multinomial logistic regression described in their 2006 paper
 //' 'Bayesian auxiliary variable models for binary and multinomial regression'
 //' in Bayesian Analysis. The C++ code was written using the pseudo-code in
-//' this paper as a template.
+//' this paper as a template. Faster than \code{multilogit_holmesheld_C} 
+//' but more error prone.
 //' 
 //'
 //' @param Y An N by C numeric matrix where the ith row is a set of
@@ -35,10 +36,17 @@ using namespace arma;
 //'  output after burn-in.
 //' @param n_burn non-negative integer giving the number of samples of burn-in
 //'  before the chain output is saved.
+//' @param probs If set to TRUE, categorical probabilities are calculated and returned.
+//' @param progress If TRUE, the function will print its progress at every 1,000th
+//' iteration.
+//' @family Holmes-Held methods.
+//' @seealso \code{mulitlogit_holmesheld} for a wrapper function with error
+//' checking. \code{mulitlogit_holmesheld_C} for an alternative function which is slower,
+//' but should have fewer errors in matrix inversions.
 //' @return List object containing posterior_coef, the chain of coefficient
-//' values as an P by C by n_sample array. And posterior_prob a N by C by
-//' n_sample array containing the calculated probabilities of the observations
-//' being classified into each of the C categories.
+//' values as a P by C by n_sample array. If probs are TRUE, the list will also include
+//'  posterior_prob a N by C by n_sample array containing the calculated probabilities of
+//'   the observation being classified into each of the C categories.
 //' @examples 
 //' Y <- matrix(0, nrow = 150, ncol = 3)
 //' Y[1:50, 1] <- 1
@@ -47,13 +55,13 @@ using namespace arma;
 //' X <- cbind(1, iris[ , 1:4])
 //' X <- as.matrix(X)
 //' v <- diag(10, ncol(X))
-//' out <- multilogit_holmesheld_C(Y, X, v, n_sample = 4000, n_burn = 2000)
+//' out <- multilogit_hh_inv_C(Y, X, v, n_sample = 4000, n_burn = 2000)
 //' 
 // [[Rcpp::export]]
 List multilogit_hh_inv_C(
-    NumericMatrix Y_, 
-    NumericMatrix X_, 
-    NumericMatrix v_, 
+    arma::mat const &Y, 
+    arma::mat const &X, 
+    arma::mat const &v, 
     size_t n_sample = 1000,
     size_t n_burn = 200,
     bool probs = true,
@@ -63,25 +71,15 @@ List multilogit_hh_inv_C(
   /**
    * Sizes
    */
-  size_t N = Y_.nrow();
-  size_t Q = Y_.ncol();
-  size_t P = X_.ncol();
-  
-  /**
-   * Move rcpp types to armadillo for linear algebra. ???Reconsider this for big data with pointers, pass through, etc.
-   */
-  //updated code to use the Rcpp as function which converts from R to C++ data types.
-  
-  arma::mat X = Rcpp::as<arma::mat>(X_);
-  arma::mat Y = Rcpp::as<arma::mat>(Y_);
-  arma::mat v = Rcpp::as<arma::mat>(v_);
-  
+  size_t N = Y.n_rows;
+  size_t Q = Y.n_cols;
+  size_t P = X.n_cols;
   
   /**
    * Create storage objects
    */
   arma::mat Z(N, Q - 1, fill::zeros);
-  arma::cube lambda(N,N,Q-1,fill::zeros);
+  arma::cube lambda(N, N, Q - 1, fill::zeros);
   
   //output objects
   
@@ -91,22 +89,18 @@ List multilogit_hh_inv_C(
   arma::cube beta_out(P, Q, n_sample, fill::zeros);
   arma::cube prob_out(N, Q, n_sample, fill::zeros);
   
-  
-  // R code asks for this vectorized identity matrix approach:
-  // Lambda <- array(data = as.vector(diag(N)), dim = c(N, N, (Q - 1)))
-  // will just 0's work? or will the following work? 
   arma::mat identity(N,N,fill::eye);
-  for(size_t i=0;i<Q-1;i++){
+  for(size_t i = 0; i < Q - 1; i++){
     lambda.slice(i) = identity; 
   }
   
   //creates a NxQ NumericMatrix filled with 0s. This will be interpreted as logical in the right argument of trunc_logis.
   
-  NumericMatrix right_switch(N,Q);
+  NumericMatrix right_switch(N, Q);
   
-  for(size_t i=0;i<N;i++){
-    for(size_t j=0;j<(Q-1);j++){
-      if(Y(i,j)!=0 ){
+  for(size_t i = 0; i < N; i++){
+    for(size_t j = 0;j < (Q-1); j++){
+      if(Y(i,j) != 0 ){
         right_switch(i,j) = 1; 
       }
     }

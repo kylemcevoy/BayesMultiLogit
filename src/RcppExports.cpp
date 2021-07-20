@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // dmvnrm_arma
 double dmvnrm_arma(arma::rowvec const& x, arma::rowvec const& mean, arma::mat const& sigma, bool const logd);
 RcppExport SEXP _BayesMultiLogit_dmvnrm_arma(SEXP xSEXP, SEXP meanSEXP, SEXP sigmaSEXP, SEXP logdSEXP) {
@@ -17,53 +22,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat const& >::type sigma(sigmaSEXP);
     Rcpp::traits::input_parameter< bool const >::type logd(logdSEXP);
     rcpp_result_gen = Rcpp::wrap(dmvnrm_arma(x, mean, sigma, logd));
-    return rcpp_result_gen;
-END_RCPP
-}
-// helloPG
-SEXP helloPG(int n, double z);
-RcppExport SEXP _BayesMultiLogit_helloPG(SEXP nSEXP, SEXP zSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< double >::type z(zSEXP);
-    rcpp_result_gen = Rcpp::wrap(helloPG(n, z));
-    return rcpp_result_gen;
-END_RCPP
-}
-// right_interval
-int right_interval(double U, double lambda);
-RcppExport SEXP _BayesMultiLogit_right_interval(SEXP USEXP, SEXP lambdaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type U(USEXP);
-    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
-    rcpp_result_gen = Rcpp::wrap(right_interval(U, lambda));
-    return rcpp_result_gen;
-END_RCPP
-}
-// left_interval
-int left_interval(double U, double lambda);
-RcppExport SEXP _BayesMultiLogit_left_interval(SEXP USEXP, SEXP lambdaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type U(USEXP);
-    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
-    rcpp_result_gen = Rcpp::wrap(left_interval(U, lambda));
-    return rcpp_result_gen;
-END_RCPP
-}
-// lambda_sampler
-double lambda_sampler(double r);
-RcppExport SEXP _BayesMultiLogit_lambda_sampler(SEXP rSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type r(rSEXP);
-    rcpp_result_gen = Rcpp::wrap(lambda_sampler(r));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -110,19 +68,19 @@ BEGIN_RCPP
 END_RCPP
 }
 // multilogit_holmesheld_C
-List multilogit_holmesheld_C(NumericMatrix Y_, NumericMatrix X_, NumericMatrix v_, size_t n_sample, size_t n_burn, bool probs, bool progress);
-RcppExport SEXP _BayesMultiLogit_multilogit_holmesheld_C(SEXP Y_SEXP, SEXP X_SEXP, SEXP v_SEXP, SEXP n_sampleSEXP, SEXP n_burnSEXP, SEXP probsSEXP, SEXP progressSEXP) {
+List multilogit_holmesheld_C(arma::mat const& Y, arma::mat const& X, arma::mat const& v, size_t n_sample, size_t n_burn, bool probs, bool progress);
+RcppExport SEXP _BayesMultiLogit_multilogit_holmesheld_C(SEXP YSEXP, SEXP XSEXP, SEXP vSEXP, SEXP n_sampleSEXP, SEXP n_burnSEXP, SEXP probsSEXP, SEXP progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type Y_(Y_SEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type X_(X_SEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type v_(v_SEXP);
+    Rcpp::traits::input_parameter< arma::mat const& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< arma::mat const& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat const& >::type v(vSEXP);
     Rcpp::traits::input_parameter< size_t >::type n_sample(n_sampleSEXP);
     Rcpp::traits::input_parameter< size_t >::type n_burn(n_burnSEXP);
     Rcpp::traits::input_parameter< bool >::type probs(probsSEXP);
     Rcpp::traits::input_parameter< bool >::type progress(progressSEXP);
-    rcpp_result_gen = Rcpp::wrap(multilogit_holmesheld_C(Y_, X_, v_, n_sample, n_burn, probs, progress));
+    rcpp_result_gen = Rcpp::wrap(multilogit_holmesheld_C(Y, X, v, n_sample, n_burn, probs, progress));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -141,64 +99,30 @@ BEGIN_RCPP
 END_RCPP
 }
 // multilogit_hh_inv_C
-List multilogit_hh_inv_C(NumericMatrix Y_, NumericMatrix X_, NumericMatrix v_, size_t n_sample, size_t n_burn, bool probs, bool progress);
-RcppExport SEXP _BayesMultiLogit_multilogit_hh_inv_C(SEXP Y_SEXP, SEXP X_SEXP, SEXP v_SEXP, SEXP n_sampleSEXP, SEXP n_burnSEXP, SEXP probsSEXP, SEXP progressSEXP) {
+List multilogit_hh_inv_C(arma::mat const& Y, arma::mat const& X, arma::mat const& v, size_t n_sample, size_t n_burn, bool probs, bool progress);
+RcppExport SEXP _BayesMultiLogit_multilogit_hh_inv_C(SEXP YSEXP, SEXP XSEXP, SEXP vSEXP, SEXP n_sampleSEXP, SEXP n_burnSEXP, SEXP probsSEXP, SEXP progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type Y_(Y_SEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type X_(X_SEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type v_(v_SEXP);
+    Rcpp::traits::input_parameter< arma::mat const& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< arma::mat const& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat const& >::type v(vSEXP);
     Rcpp::traits::input_parameter< size_t >::type n_sample(n_sampleSEXP);
     Rcpp::traits::input_parameter< size_t >::type n_burn(n_burnSEXP);
     Rcpp::traits::input_parameter< bool >::type probs(probsSEXP);
     Rcpp::traits::input_parameter< bool >::type progress(progressSEXP);
-    rcpp_result_gen = Rcpp::wrap(multilogit_hh_inv_C(Y_, X_, v_, n_sample, n_burn, probs, progress));
-    return rcpp_result_gen;
-END_RCPP
-}
-// trunc_logis
-double trunc_logis(double location, double scale, bool right);
-RcppExport SEXP _BayesMultiLogit_trunc_logis(SEXP locationSEXP, SEXP scaleSEXP, SEXP rightSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type location(locationSEXP);
-    Rcpp::traits::input_parameter< double >::type scale(scaleSEXP);
-    Rcpp::traits::input_parameter< bool >::type right(rightSEXP);
-    rcpp_result_gen = Rcpp::wrap(trunc_logis(location, scale, right));
-    return rcpp_result_gen;
-END_RCPP
-}
-// random_truncated_logistic
-arma::vec random_truncated_logistic(size_t n, double location, double scale, double left, double right);
-RcppExport SEXP _BayesMultiLogit_random_truncated_logistic(SEXP nSEXP, SEXP locationSEXP, SEXP scaleSEXP, SEXP leftSEXP, SEXP rightSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< size_t >::type n(nSEXP);
-    Rcpp::traits::input_parameter< double >::type location(locationSEXP);
-    Rcpp::traits::input_parameter< double >::type scale(scaleSEXP);
-    Rcpp::traits::input_parameter< double >::type left(leftSEXP);
-    Rcpp::traits::input_parameter< double >::type right(rightSEXP);
-    rcpp_result_gen = Rcpp::wrap(random_truncated_logistic(n, location, scale, left, right));
+    rcpp_result_gen = Rcpp::wrap(multilogit_hh_inv_C(Y, X, v, n_sample, n_burn, probs, progress));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BayesMultiLogit_dmvnrm_arma", (DL_FUNC) &_BayesMultiLogit_dmvnrm_arma, 4},
-    {"_BayesMultiLogit_helloPG", (DL_FUNC) &_BayesMultiLogit_helloPG, 2},
-    {"_BayesMultiLogit_right_interval", (DL_FUNC) &_BayesMultiLogit_right_interval, 2},
-    {"_BayesMultiLogit_left_interval", (DL_FUNC) &_BayesMultiLogit_left_interval, 2},
-    {"_BayesMultiLogit_lambda_sampler", (DL_FUNC) &_BayesMultiLogit_lambda_sampler, 1},
     {"_BayesMultiLogit_multilogit_C", (DL_FUNC) &_BayesMultiLogit_multilogit_C, 12},
     {"_BayesMultiLogit_multilogit_C_ESS", (DL_FUNC) &_BayesMultiLogit_multilogit_C_ESS, 10},
     {"_BayesMultiLogit_multilogit_holmesheld_C", (DL_FUNC) &_BayesMultiLogit_multilogit_holmesheld_C, 7},
     {"_BayesMultiLogit_multilogit_PG_C", (DL_FUNC) &_BayesMultiLogit_multilogit_PG_C, 4},
     {"_BayesMultiLogit_multilogit_hh_inv_C", (DL_FUNC) &_BayesMultiLogit_multilogit_hh_inv_C, 7},
-    {"_BayesMultiLogit_trunc_logis", (DL_FUNC) &_BayesMultiLogit_trunc_logis, 3},
-    {"_BayesMultiLogit_random_truncated_logistic", (DL_FUNC) &_BayesMultiLogit_random_truncated_logistic, 5},
     {NULL, NULL, 0}
 };
 

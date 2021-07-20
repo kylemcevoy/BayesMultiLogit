@@ -12,7 +12,6 @@
 
 using namespace Rcpp;
 
-// [[Rcpp::export]]
 int right_interval(double U, double lambda)
 {
   int OK{ 0 };
@@ -71,7 +70,6 @@ int right_interval(double U, double lambda)
   return(OK);
 }
 
-// [[Rcpp::export]]
 int left_interval(double U, double lambda)
 {
   int OK{ 0 };
@@ -139,7 +137,6 @@ int left_interval(double U, double lambda)
   
 }
 
-// [[Rcpp::export]]
 double lambda_sampler(double r)
 {
   double W{ 0 };

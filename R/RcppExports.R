@@ -5,22 +5,6 @@ dmvnrm_arma <- function(x, mean, sigma, logd = FALSE) {
     .Call(`_BayesMultiLogit_dmvnrm_arma`, x, mean, sigma, logd)
 }
 
-helloPG <- function(n, z) {
-    .Call(`_BayesMultiLogit_helloPG`, n, z)
-}
-
-right_interval <- function(U, lambda) {
-    .Call(`_BayesMultiLogit_right_interval`, U, lambda)
-}
-
-left_interval <- function(U, lambda) {
-    .Call(`_BayesMultiLogit_left_interval`, U, lambda)
-}
-
-lambda_sampler <- function(r) {
-    .Call(`_BayesMultiLogit_lambda_sampler`, r)
-}
-
 #' Multinomial Logistic Regression using Data Augmentation
 #' 
 #' @description This function implements a data augmentation method for
@@ -81,11 +65,11 @@ multilogit_C_ESS <- function(Y_, X_, n_sample = 1000L, n_burn = 200L, prior = "n
 
 #' Multinomial Logistic Regression using the Holmes-Held Method
 #' 
-#' @description This function implements the Holmes-Held method for
+#' This function implements the Holmes-Held method for
 #' multinomial logistic regression described in their 2006 paper
 #' 'Bayesian auxiliary variable models for binary and multinomial regression'
 #' in Bayesian Analysis. The C++ code was written using the pseudo-code in
-#' this paper as a template.
+#' this paper as a template. Slower than \code{multilogit_hh_inv_C} but less error prone.
 #' 
 #'
 #' @param Y An N by C numeric matrix where the ith row is a set of
@@ -99,10 +83,17 @@ multilogit_C_ESS <- function(Y_, X_, n_sample = 1000L, n_burn = 200L, prior = "n
 #'  output after burn-in.
 #' @param n_burn non-negative integer giving the number of samples of burn-in
 #'  before the chain output is saved.
+#' @param probs If TRUE, categorical probabilities are calculated and returned.
+#' @param progress If TRUE, the function will print its progress at every 1,000th
+#' iteration.
+#' @family Holmes-Held methods.
+#' @seealso \code{mulitlogit_holmesheld} for a wrapper function with error
+#' checking. \code{mulitlogit_hh_inv_C} for an alternative function which is faster,
+#' but may have increased errors in matrix inversions.
 #' @return List object containing posterior_coef, the chain of coefficient
-#' values as an P by C by n_sample array. And posterior_prob a N by C by
-#' n_sample array containing the calculated probabilities of the observations
-#' being classified into each of the C categories.
+#' values as a P by C by n_sample array. If probs are TRUE, the list will also include
+#'  posterior_prob a N by C by n_sample array containing the calculated probabilities of
+#'   the observation being classified into each of the C categories.
 #' @examples 
 #' Y <- matrix(0, nrow = 150, ncol = 3)
 #' Y[1:50, 1] <- 1
@@ -113,8 +104,8 @@ multilogit_C_ESS <- function(Y_, X_, n_sample = 1000L, n_burn = 200L, prior = "n
 #' v <- diag(10, ncol(X))
 #' out <- multilogit_holmesheld_C(Y, X, v, n_sample = 4000, n_burn = 2000)
 #' 
-multilogit_holmesheld_C <- function(Y_, X_, v_, n_sample = 1000L, n_burn = 200L, probs = TRUE, progress = TRUE) {
-    .Call(`_BayesMultiLogit_multilogit_holmesheld_C`, Y_, X_, v_, n_sample, n_burn, probs, progress)
+multilogit_holmesheld_C <- function(Y, X, v, n_sample = 1000L, n_burn = 200L, probs = TRUE, progress = TRUE) {
+    .Call(`_BayesMultiLogit_multilogit_holmesheld_C`, Y, X, v, n_sample, n_burn, probs, progress)
 }
 
 #' Multinomial Logistic Regression using the Polya-Gamma Method
@@ -154,11 +145,12 @@ multilogit_PG_C <- function(Y_, X_, n_sample = 1000L, n_burn = 200L) {
 
 #' Multinomial Logistic Regression using the Holmes-Held Method
 #' 
-#' @description This function implements the Holmes-Held method for
+#' This function implements the Holmes-Held method for
 #' multinomial logistic regression described in their 2006 paper
 #' 'Bayesian auxiliary variable models for binary and multinomial regression'
 #' in Bayesian Analysis. The C++ code was written using the pseudo-code in
-#' this paper as a template.
+#' this paper as a template. Faster than \code{multilogit_holmesheld_C} 
+#' but more error prone.
 #' 
 #'
 #' @param Y An N by C numeric matrix where the ith row is a set of
@@ -172,10 +164,17 @@ multilogit_PG_C <- function(Y_, X_, n_sample = 1000L, n_burn = 200L) {
 #'  output after burn-in.
 #' @param n_burn non-negative integer giving the number of samples of burn-in
 #'  before the chain output is saved.
+#' @param probs If set to TRUE, categorical probabilities are calculated and returned.
+#' @param progress If TRUE, the function will print its progress at every 1,000th
+#' iteration.
+#' @family Holmes-Held methods.
+#' @seealso \code{mulitlogit_holmesheld} for a wrapper function with error
+#' checking. \code{mulitlogit_holmesheld_C} for an alternative function which is slower,
+#' but should have fewer errors in matrix inversions.
 #' @return List object containing posterior_coef, the chain of coefficient
-#' values as an P by C by n_sample array. And posterior_prob a N by C by
-#' n_sample array containing the calculated probabilities of the observations
-#' being classified into each of the C categories.
+#' values as a P by C by n_sample array. If probs are TRUE, the list will also include
+#'  posterior_prob a N by C by n_sample array containing the calculated probabilities of
+#'   the observation being classified into each of the C categories.
 #' @examples 
 #' Y <- matrix(0, nrow = 150, ncol = 3)
 #' Y[1:50, 1] <- 1
@@ -184,17 +183,9 @@ multilogit_PG_C <- function(Y_, X_, n_sample = 1000L, n_burn = 200L) {
 #' X <- cbind(1, iris[ , 1:4])
 #' X <- as.matrix(X)
 #' v <- diag(10, ncol(X))
-#' out <- multilogit_holmesheld_C(Y, X, v, n_sample = 4000, n_burn = 2000)
+#' out <- multilogit_hh_inv_C(Y, X, v, n_sample = 4000, n_burn = 2000)
 #' 
-multilogit_hh_inv_C <- function(Y_, X_, v_, n_sample = 1000L, n_burn = 200L, probs = TRUE, progress = TRUE) {
-    .Call(`_BayesMultiLogit_multilogit_hh_inv_C`, Y_, X_, v_, n_sample, n_burn, probs, progress)
-}
-
-trunc_logis <- function(location, scale, right) {
-    .Call(`_BayesMultiLogit_trunc_logis`, location, scale, right)
-}
-
-random_truncated_logistic <- function(n, location, scale, left, right) {
-    .Call(`_BayesMultiLogit_random_truncated_logistic`, n, location, scale, left, right)
+multilogit_hh_inv_C <- function(Y, X, v, n_sample = 1000L, n_burn = 200L, probs = TRUE, progress = TRUE) {
+    .Call(`_BayesMultiLogit_multilogit_hh_inv_C`, Y, X, v, n_sample, n_burn, probs, progress)
 }
 

@@ -15,7 +15,7 @@ using namespace Rcpp;
 
 //bool right decides whether or not we are sampling from (0, inf) if TRUE, or (-inf, 0) if FALSE.
 
-// [[Rcpp::export]]
+
 double trunc_logis(double location, double scale, bool right) {
   double a{ 0 };
   double b{ 0 };

@@ -7,9 +7,11 @@
 multilogit_holmesheld(
   Y,
   X,
-  v = diag(10, nrow = ncol(X)),
+  v = diag(1, nrow = ncol(X)),
   n_sample = 1000L,
-  n_burn = 200L
+  n_burn = 200L,
+  probs = TRUE,
+  progress = TRUE
 )
 }
 \arguments{

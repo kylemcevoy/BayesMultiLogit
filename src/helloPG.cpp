@@ -48,7 +48,6 @@ colvec rpg(colvec shape, colvec scale) {
   return result;
 }
 
-// [[Rcpp::export]]
 SEXP helloPG(int n, double z) {
   // returns n draws from PG(1,z)
   colvec pgscale(n, fill::ones);
