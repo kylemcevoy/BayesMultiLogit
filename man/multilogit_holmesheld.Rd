@@ -22,7 +22,7 @@ of the C categories the observation is classified into.}
 
 \item{X}{An N by P numeric matrix where the ith row gives
 the values of the predictor variables for the ith observation. The first column of X
-should be an intercept column of 1's. Non-intercept X columns
+should be an intercept column of 1s. Non-intercept X columns
 should be centered and scaled by their standard deviations for best results.}
 
 \item{v}{a P by P numeric matrix giving the covariance matrix of coefficients.

@@ -24,6 +24,7 @@ of the C categories the observation is classified into.}
 \item{X}{An N by P numeric matrix where N is the total number of
 observations and P is the total number of predictor variables (including the intercept) the ith row
 gives the values of the predictor variables for the ith outcome observation.
+The first column of X should be an intercept column of 1s.
 Non-intercept X columns should be centered and scaled by their standard deviations for best results.}
 
 \item{n_sample}{positive integer giving the number of samples to draw as
@@ -76,7 +77,7 @@ X <- scale(iris[ , 1:4])
 X <- cbind(1, X)
 out <- multilogit_C_ESS(Y, X, n_sample = 3000, n_burn = 1500, reference_cat = 1)
  
-out_2 <- multilogit_C_ESS(Y, X, n_sample = 2000, n_burn = 500, prior_mean = c(0, 1, 0, 0, 0),
+out_2 <- multilogit_C_ESS(Y, X, n_sample = 2000, n_burn = 500,
  prior_var = diag(x = 1, nrow = 5))
 
 }

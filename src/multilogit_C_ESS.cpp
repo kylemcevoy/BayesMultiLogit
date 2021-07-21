@@ -61,7 +61,7 @@ using namespace arma;
 //' X <- cbind(1, X)
 //' out <- multilogit_C_ESS(Y, X, n_sample = 3000, n_burn = 1500, reference_cat = 1)
 //'  
-//' out_2 <- multilogit_C_ESS(Y, X, n_sample = 2000, n_burn = 500, prior_mean = c(0, 1, 0, 0, 0),
+//' out_2 <- multilogit_C_ESS(Y, X, n_sample = 2000, n_burn = 500,
 //'  prior_var = diag(x = 1, nrow = 5))
 //' 
 // [[Rcpp::export]]

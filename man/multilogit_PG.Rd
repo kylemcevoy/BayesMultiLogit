@@ -19,7 +19,8 @@ indicators for observation i of N giving which of the C categories the
 observation is classified into.}
 
 \item{X}{An N by P numeric matrix where the ith row gives
-the values of the predictor variables for the ith outcome observation.
+the values of the predictor variables for the ith outcome observation. 
+The first column of X should be an intercept column of 1's.
 Non-intercept X columns should be centered and scaled by their standard deviations for best results.}
 
 \item{n_sample}{positive integer giving the number of samples to draw as
