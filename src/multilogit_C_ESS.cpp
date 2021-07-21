@@ -187,9 +187,9 @@ List multilogit_C_ESS(
   int while_iters; 
   // Setting initial values of beta to the linear probability model least squares...
   // @Jared do these lines still need to be in here? If so, should it be all non-reference beta columns?
-  if(reference_beta != 0) beta.col(0) = arma::inv(arma::trans(X)*X) * arma::trans(X) * Y.col(0);
-  if(reference_beta != 1) beta.col(1) = arma::inv(arma::trans(X)*X) * arma::trans(X) * Y.col(1);
-  if(reference_beta != 2) beta.col(2) = arma::inv(arma::trans(X)*X) * arma::trans(X) * Y.col(2);
+  //if(reference_beta != 0) beta.col(0) = arma::inv(arma::trans(X)*X) * arma::trans(X) * Y.col(0);
+  //if(reference_beta != 1) beta.col(1) = arma::inv(arma::trans(X)*X) * arma::trans(X) * Y.col(1);
+  //if(reference_beta != 2) beta.col(2) = arma::inv(arma::trans(X)*X) * arma::trans(X) * Y.col(2);
   
   
   /**
