@@ -11,16 +11,19 @@ multilogit_holmesheld(
   n_sample = 1000L,
   n_burn = 200L,
   probs = TRUE,
-  progress = TRUE
+  progress = TRUE,
+  fast = FALSE
 )
 }
 \arguments{
 \item{Y}{An N by C numeric matrix where the ith row is a set of
-indicators for observation i of N total observations giving which
+indicators for observation i giving which
 of the C categories the observation is classified into.}
 
 \item{X}{An N by P numeric matrix where the ith row gives
-the values of the predictor variables for the ith outcome observation.}
+the values of the predictor variables for the ith observation. The first column of X
+should be an intercept column of 1's. Non-intercept X columns
+should be centered and scaled by their standard deviations for best results.}
 
 \item{v}{a P by P numeric matrix giving the covariance matrix of coefficients.
 The function only accepts one matrix for all categories.}
@@ -30,30 +33,47 @@ output after burn-in.}
 
 \item{n_burn}{non-negative integer giving the number of samples of burn-in
 before the chain output is saved.}
+
+\item{probs}{logical If TRUE categorical probabilities will be calculated and returned for
+non-burn samples.}
+
+\item{progress}{logical If TRUE the function will report its progress each thousandth iteration.}
+
+\item{fast}{logical If TRUE the wrapper function will call \code{multilogit_hh_inv_C} as opposed to 
+\code{mulitlogit_holmesheld_C}. \code{multilogit_hh_inv_C} uses faster matrix inverse functions so is faster, 
+but is more prone to errors due to numerical tolerance issues when inverting the matrices.}
 }
 \value{
-List object containing posterior_coef, the chain of coefficient
-values as an P by C by n_sample array. And posterior_prob a N by C by
-n_sample array containing the calculated probabilities of the observations
-being classified into each of the C categories.
+List object containing posterior_coef, the chain of coefficient 
+values as an P by C by n_sample array. If probs is set to TRUE, the 
+posterior_prob a N by C by n_sample array containing the calculated 
+probabilities of the N observations being classified into each of the C categories 
+will also be returned.
 }
 \description{
-This is an R wrapper to the function multilogit_holmesheld_C.
-This function implements the Holmes-Held method for
+This is an R wrapper to the C++ functions multilogit_holmesheld_C and multilogit_hh_inv_C.
+This function implements the Holmes and Held method for
 multinomial logistic regression described in their 2006 paper
 'Bayesian auxiliary variable models for binary and multinomial regression'
-in Bayesian Analysis. The C++ code was written using the pseudo-code in
+in Bayesian Analysis. The C++ code was written by Kyle R. McEvoy using the pseudo-code in
 this paper as a template.
 }
 \examples{
 Y <- matrix(0, nrow = 150, ncol = 3)
-Y[1:50, 1] <- 1
-Y[51:100, 2] <- 1
-Y[101:150, 3] <- 1
+Y <- sapply(c(1,2,3), function(x) Y[, x] <- as.numeric((as.numeric(iris$Species) == x) )) 
 X <- cbind(1, iris[ , 1:4])
 X <- as.matrix(X)
-v <- diag(10, ncol(X))
+v <- diag(1, ncol(X))
 out <- multilogit_holmesheld(Y, X, v, n_sample = 2000, n_burn = 1000)
 
 
 }
+\seealso{
+\code{multilogit_holmesheld_C} and \code{multilogit_hh_inv_C} for the C++ functions without
+error checking.
+
+Other Holmes-Held methods.: 
+\code{\link{multilogit_hh_inv_C}()},
+\code{\link{multilogit_holmesheld_C}()}
+}
+\concept{Holmes-Held methods.}

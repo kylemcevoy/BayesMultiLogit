@@ -4,29 +4,46 @@
 \alias{multilogit_PG_C}
 \title{Multinomial Logistic Regression using the Polya-Gamma Method}
 \usage{
-multilogit_PG_C(Y_, X_, n_sample = 1000L, n_burn = 200L)
+multilogit_PG_C(
+  Y,
+  X,
+  n_sample = 1000L,
+  n_burn = 200L,
+  probs = TRUE,
+  progress = TRUE
+)
 }
 \arguments{
-\item{Y_}{NumericMatrix An N by C numeric matrix where the ith row is a set of
+\item{Y}{numeric Matrix An N by C numeric matrix where the ith row is a set of
 indicators for observation i of N giving which of the C categories the
 observation is classified into.}
 
-\item{X_}{NumericMatrix An N by P numeric matrix where the ith row gives
-the values of the predictor variables for the ith outcome observation.}
+\item{X}{numeric Matrix An N by P numeric matrix where the ith row gives
+the values of the predictor variables for the ith outcome observation.
+Non-intercept X columns should be centered and scaled by their standard deviations for best results.}
 
 \item{n_sample}{positive integer giving the number of samples to draw as
 output after burn-in.}
 
 \item{n_burn}{non-negative integer giving the number of samples of burn-in
 before the chain output is saved.}
+
+\item{probs}{logical If TRUE, the function will calculate and return the probabilities
+for each chain sample of each observation falling into the categories
+based on the fitted coefficients.}
+
+\item{progress}{logical If TRUE, the function will report its progress at every
+thousandth iteration.}
 }
 \value{
-list object containing posterior_coef, the chain of coefficient
-values as an P by C by n_sample array. And posterior_prob a N by C by
-n_sample array containing the calculated probabilities of the observations
-being classified into each of the C categories.
+List object containing posterior_coef, the chain of coefficient
+values as an P by C by n_sample array. And, if probs is set to TRUE, 
+posterior_prob a N by C by n_sample array containing the calculated 
+probabilities of the observations being classified into each of the C categories.
 }
 \description{
+WARNING: This function can result in R freezing in a non-interruptable state.
+
 This function implements the Polya-Gamma method for
 multinomial logistic regression. Rewritten for C++ by Jared Fisher
 and Kyle McEvoy, but code originally written by Jesse Windle.
@@ -37,10 +54,9 @@ License version 3 or later and without ANY warranty, implied or otherwise.
 }
 \examples{
 Y <- matrix(0, nrow = 150, ncol = 3)
-Y[1:50, 1] <- 1
-Y[51:100, 2] <- 1
-Y[101:150, 3] <- 1
-X <- cbind(1, iris[ , 1:4])
-X <- as.matrix(X)
-out2 <- multilogit_PG_C(Y, X, n_sample = 4000, n_burn = 2000)
+Y <- sapply(c(1,2,3), function(x) Y[, x] <- as.numeric((as.numeric(iris$Species) == x) )) 
+X <- scale(iris[ , 1:4])
+X <- cbind(1, X)
+out2 <- multilogit_PG_C(Y, X, n_sample = 2000, n_burn = 500, probs = TRUE, progress = TRUE)
+
 }

@@ -51,21 +51,20 @@ this paper as a template. Slower than \code{multilogit_hh_inv_C} but less error 
 }
 \examples{
 Y <- matrix(0, nrow = 150, ncol = 3)
-Y[1:50, 1] <- 1
-Y[51:100, 2] <- 1
-Y[101:150, 3] <- 1
+Y <- sapply(c(1,2,3), function(x) Y[, x] <- as.numeric((as.numeric(iris$Species) == x) ))
 X <- cbind(1, iris[ , 1:4])
 X <- as.matrix(X)
-v <- diag(10, ncol(X))
+v <- diag(1, ncol(X))
 out <- multilogit_holmesheld_C(Y, X, v, n_sample = 4000, n_burn = 2000)
 
 }
 \seealso{
-\code{mulitlogit_holmesheld} for a wrapper function with error
+\code{mulitlogit_holmesheld} for an R wrapper function with error
 checking. \code{mulitlogit_hh_inv_C} for an alternative function which is faster,
 but may have increased errors in matrix inversions.
 
 Other Holmes-Held methods.: 
-\code{\link{multilogit_hh_inv_C}()}
+\code{\link{multilogit_hh_inv_C}()},
+\code{\link{multilogit_holmesheld}()}
 }
 \concept{Holmes-Held methods.}

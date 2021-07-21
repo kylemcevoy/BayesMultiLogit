@@ -1,0 +1,95 @@
+---
+title: "BayesMultiLogit"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{BayesMultiLogit}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(BayesMultiLogit)
+```
+
+# BayesMultiLogit  
+
+This is an R package developed by Kyle R. McEvoy and Jared Fisher to implement a number of methods for performing Bayesian multinomial logistic regression using data-augmentation methods. 
+
+The code for all functions using the Holmes-Held methods were written by us following the pseudo-code template provided in the paper:
+"Bayesian Auxiliary Variable Models for Binary and Multinomial Regression" by Chris C. Holmes and Leonhard Held, Bayesian Analysis (2006).
+
+The code for the Polya-Gamma functions was copied from the public repository <https://github.com/jgscott/helloPG> by James G. Scott who was adapting code
+from the package <https://github.com/jwindle/BayesLogit>. The BayesLogit repository includes code written by Jesse Windle, Nicholas Polson, and James G. Scott.
+
+The multivariate normal density function was copied from work by Nino Hardt, Dicko Ahmadou, Benjamin Christoffersen on the Rcpp Gallery
+located at <https://gallery.rcpp.org/articles/dmvnorm_arma/>.
+
+## Using the Functions
+
+The package contains four wrapper functions for performing Bayesian Multinomial Logistic Regression. These wrapper functions perform some light error-checking on arguments before calling the C++ functions that actually perform the logistic regression methods.  
+
+Each of these functions is expecting inputs to be formatted in a similar way. $Y$ and $X$ should both be matrices. $Y$ is an N by C matrix with one row for each observation. The columns are indicator variables for each category, so no more than one column in each row should be non-zero. And all entries of the matrix should be zeroes or ones. X is the matrix of predictors. The first column should be an intercept column of 1s. For best results all other columns should be centered around the mean and scaled by the standard deviation.
+
+When priors on the coefficients are specified the mean should be a vector with length equal to $P$ the number of columns of $X$ including the intercept column, and the prior variance should be a $P$ by $P$ square matrix. In general the functions do not allow for different priors across categories and they assume independence across categories as well.  
+
+WARNING!!: The multilogit_PG_C function and its wrapper multilogit_PG are a bit unstable. The functions converge quickly so fewer iterations are needed for burning and sampling. When large numbers of total iterations are input (4,000+) the functions can lock up R. These are C++ functions, so they will ignore R attempts to interrupt the process. You will need to terminate the R session in order to regain control. I suggest that this function be run in a new session with all files saved and data stored before running. I will be attempting to fix these bugs at a future date.
+
+## Examples
+
+```{r}
+
+#Setting up data structures properly.
+
+X <- scale(iris[, 1:4])
+
+X <- cbind(1, X)
+
+Y <- matrix(0, nrow = 150, ncol = 3)
+
+Y <- sapply(c(1,2,3), function(x) Y[, x] <- as.numeric((as.numeric(iris$Species) == x) )) 
+
+```
+
+```{r}
+
+#Running the wrapper functions:
+
+out1 <- multilogit(Y, X, reference_cat = 1)
+
+out2 <- multilogit_ESS(Y, X, n_sample = 2000, n_burn = 500, probs = FALSE, progress = FALSE)
+
+out3 <- multilogit_holmesheld(Y, X, v = diag(1, nrow = ncol(X)), fast = FALSE)
+
+#out4 <- multilogit_PG(Y, X)
+
+
+```
+## Outputs
+
+Outputs are in the form of list objects. The output list always has a P by C by n_samples posterior_coef array of the non-burn samples. If prob was set to TRUE in the function it will also have a N by C by n_samples posterior_prob array with the calculated probabilities based on the coefficients. 
+
+
+```{r}
+#Outputs
+
+out1$posterior_prob[1,1,990:1000]
+
+out3$posterior_coef[3,3,990:1000]
+```
+
+Time series plots are often useful for examining the chains. 
+
+```{r}
+
+plot.ts(out4$posterior_prob[113,3,])
+
+
+```
+

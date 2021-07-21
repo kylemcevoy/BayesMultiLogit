@@ -9,13 +9,13 @@ using namespace Rcpp;
 using namespace arma;
 
 List multilogit_hh_inv_C(
-    NumericMatrix Y_, 
-    NumericMatrix X_, 
-    NumericMatrix v_, 
-    size_t n_sample = 1000,
-    size_t n_burn = 200,
-    bool probs = true,
-    bool progress = true
+        arma::mat const &Y, 
+        arma::mat const &X, 
+        arma::mat const &v, 
+        size_t n_sample = 1000,
+        size_t n_burn = 200,
+        bool probs = true,
+        bool progress = true
 );
 
 #endif
