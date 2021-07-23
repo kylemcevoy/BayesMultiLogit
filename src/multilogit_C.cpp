@@ -89,6 +89,7 @@ List multilogit_C(
   arma::vec nObs(nSub);
   
   for(size_t i = 0; i < nSub; i++){
+    
     nObs(i) = sum(Y.row(i));
   }
   
@@ -181,52 +182,49 @@ List multilogit_C(
   /**
    * MCMC
    */
-  for(size_t iter=0; iter < (n_burn + n_sample); iter++){
+  for(size_t iter=0; iter < (n_burn + n_sample); iter++) {
     
-    if( progress == true && ((iter%1000) == 0 || (iter + 1) == n_burn + n_sample)){
+    if( progress == true && ((iter%1000) == 0 || (iter + 1) == n_burn + n_sample)) {
+      
       Rcout << "iteration " << iter + 1 << " of " << n_sample + n_burn << "\n";
+      
     }
     
-    // Rcout << "iteration " << iter << std::endl;
     
     /**
      * Data augmentation
      */
-    for(size_t i = 0; i < nSub; i++){ //can parallelize this in the future???
+    for(size_t i = 0; i < nSub; i++) { //can parallelize this in the future???
+      
       rate = sum(exp(X.row(i) * beta)); //colptr for future speed up???
-      // Rcout << "Xbeta"<< i<< " = "<< X.row(i)*beta << std::endl;
-      // Rcout << "rate=" << rate << std::endl;
       
       phi(i) = (R::rgamma(nObs[i],1)) / rate;
       
-      // while denominator of probabilities is calculated, I figured we'd calculate the probs because it's not done elsewhere right now
-      if(probs == true){
-        prob.row(i) = exp(X.row(i) * beta)/rate;
-        }
-      
     }
-    // Rcout << "last rate=" << rate << std::endl;
     
     /** 
-     * Sample betas - right now it's a too-simple univariate random walk MH sampler. Lots of room to improve. 
+     * Sample betas - right now it's a simple univariate random walk MH sampler. Lots of room to improve. 
      */
     
-    if(prior == "flat")
-    {
+    if(prior == "flat") {
     
  
-    for(size_t j = 0; j < nCat; j++){ //can parallelize this in the future
-      if(reference_beta == j){
+    for(size_t j = 0; j < nCat; j++) { //can parallelize this in the future
+      
+      if(reference_beta == j) {
         
         continue;
         
       }
       
-      for(size_t k = 0; k < nPred; k++){
+      for(size_t k = 0; k < nPred; k++) {
+        
         // generate proposal
         proposal = beta(k,j) + R::rnorm(0, candidate_sigmas(k,j));
+        
         // proposal = beta(k,j) + R::rnorm(0, step_size);
         betaWITHproposal = beta.col(j); // can instead be cached and updated elementwise
+        
         betaWITHproposal(k) = proposal;
         
         // calculate proposal's posterior
@@ -236,8 +234,10 @@ List multilogit_C(
         denominator = exp(dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j))));
         
         // accept/reject
-        if((numerator / denominator) > R::runif(0,1)){
+        if((numerator / denominator) > R::runif(0,1)) {
+          
           beta(k,j) = proposal;
+          
           acceptance(k,j) += 1;
         }
       }
@@ -246,12 +246,11 @@ List multilogit_C(
     }
     }
     
-    if(prior == "normal")
-    {
+    if(prior == "normal") {
       
-      for(size_t j = 0; j < nCat; j++){ //can parallelize this in the future???
+      for(size_t j = 0; j < nCat; j++) { //can parallelize this in the future
         
-        if(reference_beta == j){
+        if(reference_beta == j) {
           
           continue;
           
@@ -259,11 +258,12 @@ List multilogit_C(
         
         
         
-        for(size_t k = 0;k < nPred; k++){
+        for(size_t k = 0;k < nPred; k++) {
           // generate proposal
           proposal = beta(k, j) + R::rnorm(0, candidate_sigmas(k, j));
           // proposal = beta(k,j) + R::rnorm(0, step_size);
           betaWITHproposal = beta.col(j); // can instead be cached and updated elementwise
+          
           betaWITHproposal(k) = proposal;
           
           arma::rowvec row_beta_wp = trans(betaWITHproposal);
@@ -273,41 +273,68 @@ List multilogit_C(
           
           
           // calculate proposal's posterior
-          numerator = exp(dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal))) * dmvnrm_arma(row_beta_wp, beta_mean, beta_var);
+          numerator = exp(dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal))) * 
+            dmvnrm_arma(row_beta_wp, beta_mean, beta_var);
           
           // calculate current value's posterior 
-          denominator = exp(dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j)))) * dmvnrm_arma(row_beta, beta_mean, beta_var);
+          denominator = exp(dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j)))) *
+            dmvnrm_arma(row_beta, beta_mean, beta_var);
           
           // accept/reject
-          if((numerator / denominator) > R::runif(0,1)){
+          if((numerator / denominator) > R::runif(0,1)) {
+            
             beta(k,j) = proposal;
+            
             acceptance(k,j) += 1;
+            
           }
+          
         }
         
+      }
+      
+    }
+    
+    // Calculate probabilities 
+    
+    if (probs == true) {
+      
+      for(size_t i = 0; i < nSub; i++) {
+        
+        double temp_rate = sum(exp(X.row(i) * beta));
+        
+        prob.row(i) = exp(X.row(i) * beta) / temp_rate;
         
       }
+      
     }
     
     /**
      * Adjust candidate sigmas
      **/
     
-    if(iter < n_burn){
-      if((iter % n_sigma_check) == 0){  
-        for(size_t j = 0; j < nCat; j++){ //can parallelize this in the future???
-          if(reference_beta == j){
+    if(iter < n_burn) {
+      
+      if((iter % n_sigma_check) == 0) {  
+        
+        for(size_t j = 0; j < nCat; j++) { //can parallelize this in the future???
+          
+          if(reference_beta == j) {
+            
             continue;
           }
-          for(size_t k = 0; k < nPred; k++){
+          for(size_t k = 0; k < nPred; k++) {
             // if accepting too many, then increase candidate sigma a lot
-            if(acceptance(k, j) > (n_sigma_check * .40)){
+            if(acceptance(k, j) > (n_sigma_check * .40)) {
+              
               candidate_sigmas(k, j) = candidate_sigmas(k, j) * 2;
             }
             // if accepting too few, then increase candidate sigma a little
-            if(acceptance(k, j) < (n_sigma_check * .20)){
+            if(acceptance(k, j) < (n_sigma_check * .20)) {
+              
               candidate_sigmas(k, j) = candidate_sigmas(k, j) * .9;
             }
+            
             acceptance(k, j) = 0;
           }
         }
@@ -319,8 +346,8 @@ List multilogit_C(
      * Write out 
      */
     
-  if(probs == true){    
-    if(iter >= n_burn){
+  if(probs == true) {    
+    if(iter >= n_burn) {
       beta_out.slice(counter) = beta;
       prob_out.slice(counter) = prob;
       phi_out.col(counter) = phi;
@@ -330,8 +357,8 @@ List multilogit_C(
     
   } 
   
-  else{
-  if(iter >= n_burn){
+  else {
+  if(iter >= n_burn) {
     beta_out.slice(counter) = beta;
     phi_out.col(counter) = phi;
     counter += 1;
@@ -340,13 +367,13 @@ List multilogit_C(
   }
   } // end iter loop, i.e. end MCMC
   
-  if(probs == true){
+  if(probs == true) {
     return(List::create(
         _["posterior_prob"] = prob_out,
         _["posterior_coef"] = beta_out
     ));
     }
-  else{
+  else {
     return(List::create(
         _["posterior_coef"] = beta_out
     ));
