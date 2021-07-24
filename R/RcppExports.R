@@ -24,6 +24,10 @@ dmvnrm_arma <- function(x, mean, sigma, logd = FALSE) {
     .Call(`_BayesMultiLogit_dmvnrm_arma`, x, mean, sigma, logd)
 }
 
+metropolis_sampler <- function(Y, X, n_sample = 1000L, n_burn = 200L, prior = "flat", step_size = 0.1, prior_mean = NULL, prior_var = NULL, reference_cat = NULL, probs = TRUE, progress = TRUE) {
+    .Call(`_BayesMultiLogit_metropolis_sampler`, Y, X, n_sample, n_burn, prior, step_size, prior_mean, prior_var, reference_cat, probs, progress)
+}
+
 #' Multinomial Logistic Regression using Data Augmentation (Metropolis-Hastings)
 #' 
 #' This function implements a data augmentation method for
