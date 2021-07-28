@@ -179,12 +179,14 @@ List metropolis_sampler(
             
           }
           
-          double proposal_posterior = arma::prod(likelihood_prop);
+          double proposal_posterior = arma::sum(arma::log(likelihood_prop));
           
-          double current_posterior = arma::prod(likelihood);
+          
+          double current_posterior = arma::sum(arma::log(likelihood));
+          
           
           // accept/reject
-          if((proposal_posterior / current_posterior) > R::runif(0,1)) {
+          if((proposal_posterior - current_posterior) > log(R::runif(0,1))) {
             
             beta(k,j) = proposal;
             
