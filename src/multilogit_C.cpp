@@ -174,8 +174,10 @@ List multilogit_C(
   
   // needed for random walk Metropolis:
   double proposal; 
-  double numerator;
-  double denominator;
+  // double numerator;
+  // double denominator;
+  double lnumerator;
+  double ldenominator;
   arma::vec betaWITHproposal(nPred);
   
   
@@ -228,13 +230,15 @@ List multilogit_C(
         betaWITHproposal(k) = proposal;
         
         // calculate proposal's posterior
-        numerator = exp(dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal)));
-        
+        // numerator = exp(dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal)));
+        lnumerator = (dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal)));
         // calculate current value's posterior 
-        denominator = exp(dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j))));
+        //denominator = exp(dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j))));
+        ldenominator = (dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j))));
         
         // accept/reject
-        if((numerator / denominator) > R::runif(0,1)) {
+        // if((numerator / denominator) > R::runif(0,1)) {
+        if(( lnumerator - ldenominator) > log(R::runif(0,1))) {
           
           beta(k,j) = proposal;
           
@@ -273,15 +277,21 @@ List multilogit_C(
           
           
           // calculate proposal's posterior
-          numerator = exp(dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal))) * 
-            dmvnrm_arma(row_beta_wp, beta_mean, beta_var);
+//          numerator = exp(dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal))) * 
+  //          dmvnrm_arma(row_beta_wp, beta_mean, beta_var);
+          lnumerator = (dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal))) +
+            dmvnrm_arma(row_beta_wp, beta_mean, beta_var,  logd=true);
           
           // calculate current value's posterior 
-          denominator = exp(dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j)))) *
-            dmvnrm_arma(row_beta, beta_mean, beta_var);
+          //denominator = exp(dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j)))) *
+            //dmvnrm_arma(row_beta, beta_mean, beta_var);
+          ldenominator = (dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j)))) +
+            dmvnrm_arma(row_beta, beta_mean, beta_var, logd=true);
+
           
           // accept/reject
-          if((numerator / denominator) > R::runif(0,1)) {
+          //if((numerator / denominator) > R::runif(0,1)) {
+          if((lnumerator - ldenominator) > log(R::runif(0,1))) {
             
             beta(k,j) = proposal;
             
