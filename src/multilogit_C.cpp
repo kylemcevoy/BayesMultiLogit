@@ -280,13 +280,13 @@ List multilogit_C(
 //          numerator = exp(dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal))) * 
   //          dmvnrm_arma(row_beta_wp, beta_mean, beta_var);
           lnumerator = (dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal))) +
-            dmvnrm_arma(row_beta_wp, beta_mean, beta_var,  logd=true);
+            dmvnrm_arma(row_beta_wp, beta_mean, beta_var,  true);
           
           // calculate current value's posterior 
           //denominator = exp(dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j)))) *
             //dmvnrm_arma(row_beta, beta_mean, beta_var);
           ldenominator = (dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j)))) +
-            dmvnrm_arma(row_beta, beta_mean, beta_var, logd=true);
+            dmvnrm_arma(row_beta, beta_mean, beta_var, true);
 
           
           // accept/reject
