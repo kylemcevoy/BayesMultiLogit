@@ -77,7 +77,11 @@ List multilogit_PG_C(arma::mat const &Y,
   arma::cube beta_out(P, Q, n_sample, fill::zeros);
   arma::cube prob_out(N, Q, n_sample, fill::zeros);
   
-  arma::vec n(N, fill::ones);
+  // arma::vec n(N, fill::ones);
+  arma::vec n(N);
+  for(size_t i=0;i<N;i++){
+    n(i) = sum(Y.row(i));
+  }
   
   arma::mat y_sub = Y.submat(0, 0, N-1, Q-2);
   
@@ -85,8 +89,9 @@ List multilogit_PG_C(arma::mat const &Y,
    
   for (size_t i = 0; i < Q - 1; i++)
     {
-      kappa.col(i) = (y_sub.col(i) - 0.5) % n;
-    
+      kappa.col(i) = y_sub.col(i) - (0.5 % n);
+//          kappa.col(i) = (y_sub.col(i) - 0.5) % n;
+
     }
   
   arma::mat b_0(P, Q - 1, fill::zeros);
