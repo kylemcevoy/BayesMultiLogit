@@ -89,7 +89,7 @@ List multilogit_PG_C(arma::mat const &Y,
    
   for (size_t i = 0; i < Q - 1; i++)
     {
-      kappa.col(i) = y_sub.col(i) - (0.5 % n);
+      kappa.col(i) = y_sub.col(i) - (0.5 * n);
 //          kappa.col(i) = (y_sub.col(i) - 0.5) % n;
 
     }
