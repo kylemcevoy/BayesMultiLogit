@@ -90,7 +90,7 @@ List multilogit_PG_C(arma::mat const &Y,
   for (size_t i = 0; i < Q - 1; i++)
     {
       kappa.col(i) = y_sub.col(i) - (0.5 * n);
-//          kappa.col(i) = (y_sub.col(i) - 0.5) % n;
+//          kappa.col(i) = (y_sub.col(i) - 0.5) % n; //     BayesLogit/R/LogitPG.R line 171 was using avg response, not counts 
 
     }
   
@@ -124,9 +124,9 @@ List multilogit_PG_C(arma::mat const &Y,
       
       arma::mat exp_probs = exp(X * beta_woj);  
       
-      arma::mat A = sum(exp_probs, 1);
-      
-      arma::vec c_j = log(A);
+      //arma::mat A = sum(exp_probs, 1);
+      //arma::vec c_j = log(A);
+      arma::mat c_j = log(sum(exp_probs)); // else it's counting two columns of exp(0) not just one, unless I misunderstand beta_woj = beta (8 lines above) 
       
       arma::mat eta_j = (X * beta.col(j)) - c_j;
     
