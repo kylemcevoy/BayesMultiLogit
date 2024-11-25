@@ -83,7 +83,7 @@ List multilogit_PG_C(arma::mat const &Y,
     n(i) = sum(Y.row(i));
   }
   
-  arma::mat kappa(N, Q - 1, fill::zeros); 
+  // arma::mat kappa(N, Q - 1, fill::zeros); 
   
   //arma::mat y_sub = Y.submat(0, 0, N-1, Q-2);
   //for (size_t i = 0; i < Q - 1; i++)
