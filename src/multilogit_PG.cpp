@@ -83,16 +83,28 @@ List multilogit_PG_C(arma::mat const &Y,
     n(i) = sum(Y.row(i));
   }
   
-  arma::mat y_sub = Y.submat(0, 0, N-1, Q-2);
-  
   arma::mat kappa(N, Q - 1, fill::zeros); 
-   
-  for (size_t i = 0; i < Q - 1; i++)
-    {
-      //kappa.col(i) = y_sub.col(i) - (0.5 * n);
-    kappa.col(i) = (y_sub.col(i) - 0.5) % n; //     BayesLogit/R/LogitPG.R line 171 was using avg response, not counts 
+  
+  //arma::mat y_sub = Y.submat(0, 0, N-1, Q-2);
+  //for (size_t i = 0; i < Q - 1; i++)
+  //  {
+  //  kappa.col(i) = (y_sub.col(i) - 0.5) % n; //     BayesLogit/R/LogitPG.R line 171 was using avg response, not counts 
+   // }
 
+  // I Trying with more vanilla code...:
+  arma::mat kappa(N, Q, fill::zeros); 
+   
+  for (size_t i = 0; i < N; i++)
+  {
+    for (size_t j = 0; j < Q; j++)
+    {
+      kappa(i,j) = Y(i,j) - 0.5*n(i); 
     }
+  }
+
+
+
+  
   
   arma::mat b_0(P, Q - 1, fill::zeros);
   
@@ -109,7 +121,7 @@ List multilogit_PG_C(arma::mat const &Y,
       Rcout << "iteration " << i + 1 << " of " << n_sample + n_burn << "\n";
     }
     
-    for (size_t j = 0; j < Q - 1; j++)
+    for (size_t j = 0; j < (Q - 1); j++)
     {
       
       arma::mat beta_woj(P, Q - 1, fill::zeros);
