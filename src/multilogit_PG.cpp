@@ -155,7 +155,8 @@ List multilogit_PG_C(arma::mat const &Y,
       }
       
       arma::mat PL_j = X.t() * (X_omega);
-      arma::mat bl_j = X.t() * (kappa.col(j) + (c_j % w.col(j)));
+      // arma::mat bl_j = X.t() * (kappa.col(j) + (c_j % w.col(j)));
+      arma::mat bl_j = X.t() * (kappa.col(j) - (c_j % w.col(j)));
       
       arma::mat P1_j = PL_j + P_0.slice(j);
       
