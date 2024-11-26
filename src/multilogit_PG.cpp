@@ -91,7 +91,7 @@ List multilogit_PG_C(arma::mat const &Y,
   //  kappa.col(i) = (y_sub.col(i) - 0.5) % n; //     BayesLogit/R/LogitPG.R line 171 was using avg response, not counts 
    // }
 
-  // I Trying with more vanilla code...:
+  // Trying with more vanilla code...:
   arma::mat kappa(N, Q, fill::zeros); 
    
   for (size_t i = 0; i < N; i++)
@@ -155,6 +155,7 @@ List multilogit_PG_C(arma::mat const &Y,
       }
       
       arma::mat PL_j = X.t() * (X_omega);
+      
       // arma::mat bl_j = X.t() * (kappa.col(j) + (c_j % w.col(j)));
       arma::mat bl_j = X.t() * (kappa.col(j) - (c_j % w.col(j)));
       
