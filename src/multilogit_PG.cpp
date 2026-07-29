@@ -75,7 +75,11 @@ List multilogit_PG_C(arma::mat const &Y,
   arma::mat beta(P, Q, fill::zeros);
   
   arma::cube beta_out(P, Q, n_sample, fill::zeros);
-  arma::cube prob_out(N, Q, n_sample, fill::zeros);
+  arma::cube prob_out;
+  if(probs == true) {
+    prob_out.zeros(N, Q, n_sample);
+  }
+  //arma::cube prob_out(N, Q, n_sample, fill::zeros);
   
   // arma::vec n(N, fill::ones);
   arma::vec n(N);
