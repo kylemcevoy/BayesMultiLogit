@@ -165,11 +165,11 @@ List multilogit_C(
   arma::mat beta(nPred, nCat); beta.zeros();
   arma::mat candidate_sigmas(nPred, nCat); candidate_sigmas.fill(step_size);
   arma::mat acceptance(nPred, nCat); acceptance.zeros();
-  /* arma::cube prob_out(nSub, nCat, n_sample); */
-  if(probs == true) {
-    arma::cube prob_out;
-    prob_out.zeros(N, Q, n_sample);
-    arma::mat prob(nSub, nCat);
+  arma::cube prob_out;
+  arma::mat prob;
+  if (probs) {
+      prob_out.set_size(nSub, nCat, n_sample);
+      prob.set_size(nSub, nCat);
   }
   arma::vec phi(nSub, fill::ones);
   // arma::mat phi_out(nSub, n_sample);
