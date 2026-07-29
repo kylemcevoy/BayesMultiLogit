@@ -174,9 +174,11 @@ List multilogit_C_ESS(
   arma::mat beta(nPred, nCat); beta.zeros();
   // arma::mat candidate_sigmas(nPred,nCat); candidate_sigmas.fill(step_size);
   arma::mat acceptance(nPred, nCat); acceptance.zeros();
-  if(probs == true) {
-      arma::cube prob_out(nSub, nCat,n_sample);
-      arma::mat prob(nSub, nCat);
+  arma::cube prob_out;
+  arma::mat prob;
+  if (probs) {
+        prob_out.set_size(nSub, nCat, n_sample);
+        prob.set_size(nSub, nCat);
   }
   arma::vec phi(nSub, fill::ones);
   // arma::mat phi_out(nSub, n_sample);
