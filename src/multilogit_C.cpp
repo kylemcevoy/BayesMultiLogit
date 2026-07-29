@@ -165,10 +165,14 @@ List multilogit_C(
   arma::mat beta(nPred, nCat); beta.zeros();
   arma::mat candidate_sigmas(nPred, nCat); candidate_sigmas.fill(step_size);
   arma::mat acceptance(nPred, nCat); acceptance.zeros();
-  arma::cube prob_out(nSub, nCat, n_sample);
-  arma::mat prob(nSub, nCat);
+  /* arma::cube prob_out(nSub, nCat, n_sample); */
+  if(probs == true) {
+    arma::cube prob_out;
+    prob_out.zeros(N, Q, n_sample);
+    arma::mat prob(nSub, nCat);
+  }
   arma::vec phi(nSub, fill::ones);
-  arma::mat phi_out(nSub, n_sample);
+  // arma::mat phi_out(nSub, n_sample);
   double rate;
   size_t counter=0;
   
@@ -360,7 +364,7 @@ List multilogit_C(
     if(iter >= n_burn) {
       beta_out.slice(counter) = beta;
       prob_out.slice(counter) = prob;
-      phi_out.col(counter) = phi;
+      // phi_out.col(counter) = phi;
       counter += 1;
     }
     
@@ -370,7 +374,7 @@ List multilogit_C(
   else {
   if(iter >= n_burn) {
     beta_out.slice(counter) = beta;
-    phi_out.col(counter) = phi;
+    // phi_out.col(counter) = phi;
     counter += 1;
   }
   
