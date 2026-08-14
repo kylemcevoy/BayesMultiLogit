@@ -53,6 +53,21 @@ multilogit_PG <- function(Y, X, n_sample = 1000L, n_burn = 200L, probs = TRUE, p
   if(!identical(X[,1], rep(1, nrow(X)))){
     warning("Function expects first column of the design matrix to be an intercept column.")
   }
+
+  if (ncol(Y) < 2L)
+  stop("Y must contain at least two categories.")
+
+  if (ncol(X) < 1L)
+  stop("X must contain at least one predictor.")
+
+  if (any(!is.finite(Y)) || any(!is.finite(X)))
+  stop("X and Y must contain only finite values.")
+
+  if (any(Y < 0) || any(Y != floor(Y)))
+  stop("Y must contain nonnegative integer counts.")
+
+  if (any(rowSums(Y) <= 0))
+  stop("Every row of Y must have a positive total count.")
   
   out <- multilogit_PG_C(Y = Y, X = X, n_sample = n_sample, n_burn = n_burn, probs = probs, progress = progress)
   
