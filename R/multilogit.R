@@ -61,6 +61,14 @@ multilogit <- function(Y, X, n_sample = 1000, n_burn = 200, n_sigma_check = 20, 
   n_cat = ncol(Y)
   # X is a n_sub x n_pred matrix of covariates, aka the design matrix. 
   n_pred = ncol(X)
+
+  if (length(n_sigma_check) != 1L ||
+      is.na(n_sigma_check) ||
+      !is.numeric(n_sigma_check) ||
+      n_sigma_check <= 0 ||
+      n_sigma_check != floor(n_sigma_check)) {
+    stop("n_sigma_check must be a positive integer")
+  }
   
   if(ncol(Y) == 1){
     warning("Y only has one column. Y should be an N by C matrix where C is the total number of categories.")
