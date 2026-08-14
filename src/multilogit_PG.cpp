@@ -127,7 +127,7 @@ List multilogit_PG_C(arma::mat const &Y,
     
     for (size_t j = 0; j < (Q - 1); j++)
     {
-      
+      /*
       arma::mat beta_woj(P, Q - 1, fill::zeros);
       
       // There's gotta be a better way to do this, but .shed_col() was throwing an error.
@@ -143,6 +143,14 @@ List multilogit_PG_C(arma::mat const &Y,
       arma::mat A = sum(exp_probs, 1);
 
       arma::vec c_j = log(A);
+      */
+
+      // Five lines below are a 2026 edit; the zero'd column 
+      // Trying again to exclude category j.
+      arma::mat beta_woj = beta;
+      beta_woj.shed_col(j);
+      // Use a stable row-wise log-sum-exp here.
+      arma::vec c_j = log(sum(exp(X * beta_woj), 1));
       
       arma::mat eta_j = (X * beta.col(j)) - c_j;
     
@@ -160,8 +168,9 @@ List multilogit_PG_C(arma::mat const &Y,
       
       arma::mat PL_j = X.t() * (X_omega);
       
-      // arma::mat bl_j = X.t() * (kappa.col(j) + (c_j % w.col(j)));
-      arma::mat bl_j = X.t() * (kappa.col(j) - (c_j % w.col(j)));
+      arma::mat bl_j = X.t() * (kappa.col(j) + (c_j % w.col(j)));
+      // technical supplement uses a (-) instead, which we believe to be wrong
+      // arma::mat bl_j = X.t() * (kappa.col(j) - (c_j % w.col(j)));
       
       arma::mat P1_j = PL_j + P_0.slice(j);
       
