@@ -68,7 +68,9 @@ currently a work in progress.
 
 The sampler uses the elliptical slice sampling algorithm
 from the Murray, Adams, Mackay (2010) paper Elliptical Slice Sampling in the Journal of
-Machine Learning Research. This sampler requires a multivariate normal prior on the betas, with mean zero.
+Machine Learning Research. The paper presents a zero-centered multivariate
+normal prior. This implementation supports a nonzero mean by applying the
+elliptical update to centered coefficients.
 }
 \examples{
 Y <- matrix(0, nrow = 150, ncol = 3)

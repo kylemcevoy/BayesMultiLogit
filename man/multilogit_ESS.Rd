@@ -67,7 +67,9 @@ The data augmentation method is outlined in a paper by Jared D. Fisher and Kyle 
 
 The sampler uses the elliptical slice sampling algorithm
 from the Murray, Adams, Mackay (2010) paper Elliptical Slice Sampling in the Journal of
-Machine Learning Research. This sampler requires a multivariate normal prior on the betas.
+Machine Learning Research. The paper presents a zero-centered multivariate
+normal prior. This implementation also supports a nonzero mean by applying
+the elliptical update to the centered coefficients, beta - prior_mean.
 }
 \examples{
 Y <- matrix(0, nrow = 150, ncol = 3)

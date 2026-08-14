@@ -22,7 +22,9 @@ using namespace arma;
 //' 
 //' The sampler uses the elliptical slice sampling algorithm
 //' from the Murray, Adams, Mackay (2010) paper Elliptical Slice Sampling in the Journal of
-//' Machine Learning Research. This sampler requires a multivariate normal prior on the betas, with mean zero.
+//' Machine Learning Research. The paper presents a zero-centered multivariate
+//' normal prior. This implementation supports a nonzero mean by applying the
+//' elliptical update to centered coefficients.
 //'
 //' @param Y An N by C numeric matrix where the ith row is a set of
 //' indicators for observation i of N total observations giving which
@@ -173,6 +175,8 @@ List multilogit_C_ESS(
    */
   arma::cube beta_out(nPred, nCat, n_sample);
   arma::mat beta(nPred, nCat); beta.zeros();
+  arma::mat eta(nSub, nCat, fill::zeros);
+  const arma::vec eta_mean = X * beta_mean.t();
   // arma::mat candidate_sigmas(nPred,nCat); candidate_sigmas.fill(step_size);
   arma::mat acceptance(nPred, nCat); acceptance.zeros();
   arma::cube prob_out;
@@ -201,6 +205,8 @@ List multilogit_C_ESS(
    */
   for(size_t iter=0; iter < (n_burn + n_sample); iter++){
     if ((iter & 63U) == 0U) Rcpp::checkUserInterrupt();
+    // Keep the coefficient-space and eta-space ellipses synchronized.
+    if ((iter & 255U) == 0U) eta = X * beta;
     
     if( progress == true && ((iter % 1000) == 0 || (iter + 1) == n_burn + n_sample) ){
       Rcout << "iteration " << iter + 1 << " of " << n_sample + n_burn << "\n";
@@ -212,8 +218,7 @@ List multilogit_C_ESS(
      * Data augmentation
      */
     for(size_t i = 0; i < nSub;i++){ //can parallelize this in the future???
-      arma::rowvec eta = X.row(i) * beta;
-      const double log_rate = row_log_sum_exp(eta);
+      const double log_rate = row_log_sum_exp(eta.row(i));
       log_phi(i) = std::log(R::rgamma(nObs[i], 1)) - log_rate;
       
     }
@@ -235,11 +240,12 @@ List multilogit_C_ESS(
         
         // 1 // Choose ellipse
         nu = chol_var * var_weight;
+        arma::vec eta_nu = X * nu;
         // Rcout << "nu=" << nu << std::endl;
         
         // 2 // Log-likelihood threshold
         // u = arma::randu(1);
-        arma::vec eta_current = X * beta.col(j);
+        arma::vec eta_current = eta.col(j);
         loglike_threshold = dot(Y.col(j), eta_current) -
           accu(exp(log_phi + eta_current)) + log(R::runif(0, 1));
         // Rcout << "denominator=" << denominator << std::endl;
@@ -264,12 +270,14 @@ List multilogit_C_ESS(
           // Rcout << "beta_proposal=" << beta_proposal << std::endl;
           
           // 5 //
-          arma::vec eta_proposal = X * beta_proposal;
+          arma::vec eta_proposal = eta_mean +
+            (eta_current - eta_mean) * cos(theta) + eta_nu * sin(theta);
           proposal_likelihood = dot(Y.col(j), eta_proposal) -
             accu(exp(log_phi + eta_proposal));
           
           if (proposal_likelihood > loglike_threshold){
             beta.col(j) = beta_proposal;
+            eta.col(j) = eta_proposal;
             
             break;
             }
@@ -298,7 +306,7 @@ List multilogit_C_ESS(
  
     if(probs == true){
       for (size_t i = 0; i < nSub; ++i)
-        prob.row(i) = softmax(X.row(i) * beta);
+        prob.row(i) = softmax(eta.row(i));
       
       if(iter >= n_burn){
         beta_out.slice(counter) = beta;

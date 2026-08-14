@@ -87,6 +87,7 @@ List multilogit_hh_inv_C(
   //output objects
   
   arma::mat beta(P, Q, fill::zeros);
+  arma::mat eta(N, Q, fill::zeros);
   arma::cube beta_out(P, Q, n_sample, fill::zeros);
   arma::cube prob_out(N, Q, n_sample, fill::zeros);
   
@@ -140,7 +141,6 @@ List multilogit_hh_inv_C(
   arma::vec B(P, fill::zeros);
   double m{ 0 };
   double R{ 0 };
-  arma::mat beta_slice(P, Q, fill::zeros);
   
   /** 
    * MCMC
@@ -170,15 +170,13 @@ List multilogit_hh_inv_C(
                               Rcpp::as<arma::vec>(Rcpp::rnorm(P)),
                               solve_opts::fast);
       beta.col(q) = B + noise;
-      beta_slice = beta;
+      eta.col(q) = X * beta.col(q);
       
       
       for (size_t j = 0; j < N; j++){
         
-        m = as_scalar(X.row(j) * beta_slice.col(q));
-        
-        arma::rowvec eta = X.row(j) * beta_slice;
-        double log_C = row_log_sum_exp_excluding(eta, q);
+        m = eta(j, q);
+        double log_C = row_log_sum_exp_excluding(eta.row(j), q);
         double loc = m - log_C;
         
         
@@ -203,15 +201,13 @@ List multilogit_hh_inv_C(
       
     } // end q loop through categories
     
-    beta_slice = beta;
-
     if (i >= n_burn)
       beta_out.slice(i - n_burn) = beta;
     
     if (probs == true && i >= n_burn){
       
       for (size_t j = 0; j < N; ++j)
-        prob_out.slice(i - n_burn).row(j) = softmax(X.row(j) * beta_slice);
+        prob_out.slice(i - n_burn).row(j) = softmax(eta.row(j));
       
     }
     //}

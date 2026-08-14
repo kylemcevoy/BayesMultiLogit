@@ -96,7 +96,9 @@ multilogit_C <- function(Y, X, n_sample = 1000L, n_burn = 200L, n_sigma_check = 
 #' 
 #' The sampler uses the elliptical slice sampling algorithm
 #' from the Murray, Adams, Mackay (2010) paper Elliptical Slice Sampling in the Journal of
-#' Machine Learning Research. This sampler requires a multivariate normal prior on the betas, with mean zero.
+#' Machine Learning Research. The paper presents a zero-centered multivariate
+#' normal prior. This implementation supports a nonzero mean by applying the
+#' elliptical update to centered coefficients.
 #'
 #' @param Y An N by C numeric matrix where the ith row is a set of
 #' indicators for observation i of N total observations giving which

@@ -79,6 +79,7 @@ List multilogit_PG_C(arma::mat const &Y,
   
   arma::mat w(N, Q, fill::zeros);
   arma::mat beta(P, Q, fill::zeros);
+  arma::mat eta(N, Q, fill::zeros);
   
   arma::cube beta_out(P, Q, n_sample, fill::zeros);
   arma::cube prob_out;
@@ -134,36 +135,11 @@ List multilogit_PG_C(arma::mat const &Y,
     
     for (size_t j = 0; j < (Q - 1); j++)
     {
-      /*
-      arma::mat beta_woj(P, Q - 1, fill::zeros);
-      
-      // There's gotta be a better way to do this, but .shed_col() was throwing an error.
-      
-      arma::vec zeros(P, fill::zeros);
-      
-      beta_woj = beta;
-      
-      beta_woj.col(j) = zeros;
-      
-      arma::mat exp_probs = exp(X * beta_woj);  
-      
-      arma::mat A = sum(exp_probs, 1);
+      arma::vec c_j(N);
+      for (size_t row = 0; row < N; ++row)
+        c_j(row) = row_log_sum_exp_excluding(eta.row(row), j);
 
-      arma::vec c_j = log(A);
-      */
-
-      // Eight lines below are a 2026 edit suggested by codex; the zero'd column is only counted once, and log-sum-exp is more numerically stable. 
-      // Trying again to exclude category j.
-      arma::mat beta_woj = beta;
-      beta_woj.shed_col(j);
-      // Use a stable row-wise log-sum-exp here.
-      arma::mat lp = X * beta_woj;
-      arma::vec lp_max = max(lp, 1);
-      lp.each_col() -= lp_max;
-      arma::vec c_j = lp_max + log(sum(exp(lp), 1));
-      // end 2026 edit
-      
-      arma::mat eta_j = (X * beta.col(j)) - c_j;
+      arma::vec eta_j = eta.col(j) - c_j;
     
       w.col(j) = rpg(n, eta_j);
       
@@ -229,6 +205,7 @@ List multilogit_PG_C(arma::mat const &Y,
       );
       
       beta.col(j) = m1_j + posterior_noise;
+      eta.col(j) = X * beta.col(j);
       // end 2026 edit. 
 
 
@@ -252,7 +229,7 @@ List multilogit_PG_C(arma::mat const &Y,
       for(size_t row = 0; row < N ; row++)
       {
         prob_out.subcube(row, 0, i - n_burn, row, Q - 1, i - n_burn) =
-          softmax(X.row(row) * beta_out.slice(i - n_burn));
+          softmax(eta.row(row));
       }
     }
 

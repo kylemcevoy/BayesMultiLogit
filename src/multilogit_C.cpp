@@ -161,6 +161,7 @@ List multilogit_C(
    */
   arma::cube beta_out(nPred, nCat, n_sample);
   arma::mat beta(nPred, nCat); beta.zeros();
+  arma::mat eta(nSub, nCat, fill::zeros);
   arma::mat candidate_sigmas(nPred, nCat); candidate_sigmas.fill(step_size);
   arma::mat acceptance(nPred, nCat); acceptance.zeros();
   arma::cube prob_out;
@@ -187,6 +188,8 @@ List multilogit_C(
    */
   for(size_t iter=0; iter < (n_burn + n_sample); iter++) {
     if ((iter & 63U) == 0U) Rcpp::checkUserInterrupt();
+    // Bound accumulated roundoff from accepted rank-one cache updates.
+    if ((iter & 255U) == 0U) eta = X * beta;
     
     if( progress == true && ((iter%1000) == 0 || (iter + 1) == n_burn + n_sample)) {
       
@@ -200,8 +203,8 @@ List multilogit_C(
      */
     for(size_t i = 0; i < nSub; i++) { //can parallelize this in the future???
       
-      arma::rowvec eta = X.row(i) * beta;
-      log_phi(i) = std::log(R::rgamma(nObs[i], 1)) - row_log_sum_exp(eta);
+      log_phi(i) = std::log(R::rgamma(nObs[i], 1)) -
+        row_log_sum_exp(eta.row(i));
       
     }
     
@@ -232,7 +235,7 @@ List multilogit_C(
         
         // calculate proposal's posterior
         // numerator = exp(dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal)));
-        arma::vec eta_current = X * beta.col(j);
+        arma::vec eta_current = eta.col(j);
         arma::vec eta_proposal = eta_current + X.col(k) * (proposal - beta(k, j));
         lnumerator = dot(Y.col(j), eta_proposal) - accu(exp(log_phi + eta_proposal));
         // calculate current value's posterior 
@@ -244,6 +247,7 @@ List multilogit_C(
         if(( lnumerator - ldenominator) > log(R::runif(0,1))) {
           
           beta(k,j) = proposal;
+          eta.col(j) = eta_proposal;
           
           acceptance(k,j) += 1;
         }
@@ -282,7 +286,7 @@ List multilogit_C(
           // calculate proposal's posterior
 //          numerator = exp(dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal))) * 
   //          dmvnrm_arma(row_beta_wp, beta_mean, beta_var);
-          arma::vec eta_current = X * beta.col(j);
+          arma::vec eta_current = eta.col(j);
           arma::vec eta_proposal = eta_current + X.col(k) * (proposal - beta(k, j));
           arma::rowvec centered_proposal = row_beta_wp - beta_mean;
           lnumerator = (dot(Y.col(j), eta_proposal) - accu(exp(log_phi + eta_proposal))) +
@@ -301,6 +305,7 @@ List multilogit_C(
           if((lnumerator - ldenominator) > log(R::runif(0,1))) {
             
             beta(k,j) = proposal;
+            eta.col(j) = eta_proposal;
             
             acceptance(k,j) += 1;
             
@@ -318,7 +323,7 @@ List multilogit_C(
       
       for(size_t i = 0; i < nSub; i++) {
         
-        prob.row(i) = softmax(X.row(i) * beta);
+        prob.row(i) = softmax(eta.row(i));
         
       }
       
