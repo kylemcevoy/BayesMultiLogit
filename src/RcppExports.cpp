@@ -25,6 +25,31 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// multilogit_AMH_C
+List multilogit_AMH_C(arma::mat const& Y, arma::mat const& X, size_t n_sample, size_t n_burn, size_t n_sigma_check, double step_size, double acceptance_lower, double acceptance_upper, double step_increase, double step_decrease, arma::vec const& prior_mean, arma::mat const& prior_var, size_t reference_cat, bool probs, bool progress);
+RcppExport SEXP _BayesMultiLogit_multilogit_AMH_C(SEXP YSEXP, SEXP XSEXP, SEXP n_sampleSEXP, SEXP n_burnSEXP, SEXP n_sigma_checkSEXP, SEXP step_sizeSEXP, SEXP acceptance_lowerSEXP, SEXP acceptance_upperSEXP, SEXP step_increaseSEXP, SEXP step_decreaseSEXP, SEXP prior_meanSEXP, SEXP prior_varSEXP, SEXP reference_catSEXP, SEXP probsSEXP, SEXP progressSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat const& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< arma::mat const& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< size_t >::type n_sample(n_sampleSEXP);
+    Rcpp::traits::input_parameter< size_t >::type n_burn(n_burnSEXP);
+    Rcpp::traits::input_parameter< size_t >::type n_sigma_check(n_sigma_checkSEXP);
+    Rcpp::traits::input_parameter< double >::type step_size(step_sizeSEXP);
+    Rcpp::traits::input_parameter< double >::type acceptance_lower(acceptance_lowerSEXP);
+    Rcpp::traits::input_parameter< double >::type acceptance_upper(acceptance_upperSEXP);
+    Rcpp::traits::input_parameter< double >::type step_increase(step_increaseSEXP);
+    Rcpp::traits::input_parameter< double >::type step_decrease(step_decreaseSEXP);
+    Rcpp::traits::input_parameter< arma::vec const& >::type prior_mean(prior_meanSEXP);
+    Rcpp::traits::input_parameter< arma::mat const& >::type prior_var(prior_varSEXP);
+    Rcpp::traits::input_parameter< size_t >::type reference_cat(reference_catSEXP);
+    Rcpp::traits::input_parameter< bool >::type probs(probsSEXP);
+    Rcpp::traits::input_parameter< bool >::type progress(progressSEXP);
+    rcpp_result_gen = Rcpp::wrap(multilogit_AMH_C(Y, X, n_sample, n_burn, n_sigma_check, step_size, acceptance_lower, acceptance_upper, step_increase, step_decrease, prior_mean, prior_var, reference_cat, probs, progress));
+    return rcpp_result_gen;
+END_RCPP
+}
 // multilogit_C
 List multilogit_C(arma::mat const& Y, arma::mat const& X, size_t n_sample, size_t n_burn, size_t n_sigma_check, String prior, double step_size, Nullable<NumericVector> prior_mean, Nullable<NumericMatrix> prior_var, Nullable<IntegerVector> reference_cat, bool probs, bool progress);
 RcppExport SEXP _BayesMultiLogit_multilogit_C(SEXP YSEXP, SEXP XSEXP, SEXP n_sampleSEXP, SEXP n_burnSEXP, SEXP n_sigma_checkSEXP, SEXP priorSEXP, SEXP step_sizeSEXP, SEXP prior_meanSEXP, SEXP prior_varSEXP, SEXP reference_catSEXP, SEXP probsSEXP, SEXP progressSEXP) {
@@ -119,6 +144,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BayesMultiLogit_dmvnrm_arma", (DL_FUNC) &_BayesMultiLogit_dmvnrm_arma, 4},
+    {"_BayesMultiLogit_multilogit_AMH_C", (DL_FUNC) &_BayesMultiLogit_multilogit_AMH_C, 15},
     {"_BayesMultiLogit_multilogit_C", (DL_FUNC) &_BayesMultiLogit_multilogit_C, 12},
     {"_BayesMultiLogit_multilogit_C_ESS", (DL_FUNC) &_BayesMultiLogit_multilogit_C_ESS, 9},
     {"_BayesMultiLogit_multilogit_holmesheld_C", (DL_FUNC) &_BayesMultiLogit_multilogit_holmesheld_C, 7},

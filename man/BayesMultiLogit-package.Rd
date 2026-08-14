@@ -9,7 +9,7 @@
 \packageDescription{BayesMultiLogit}
 }
 \details{
-This package implements specific methods for performing Bayesian Multinomial Logistic Regression. The main functions included are wrappers multilogit, multilogit_PG, multilogit_holmesheld for the functions written in C++. The multilogit function implements a method explored in our paper "Bayesian Multinomial Logistic Regression for Numerous Categories". While the function multilogit_PG implements the Polya-Gamma method from the 2013 paper by Nicholas G. Polson and  James G. Scott and Jesse Windle, and the function multilogit_holmesheld implements the method proposed by Chris C. Holmes and Leonhard Held in their 2006 paper.
+This package implements several MCMC methods for Bayesian multinomial logistic regression. The main R wrappers are multilogit_AMH, multilogit, multilogit_ESS, multilogit_PG, and multilogit_holmesheld. multilogit_AMH targets the multinomial likelihood directly with adaptive coordinate-wise Metropolis-Hastings. multilogit and multilogit_ESS implement methods explored in "Bayesian Multinomial Logistic Regression for Numerous Categories". multilogit_PG implements the Polya-Gamma method, and multilogit_holmesheld implements the method proposed by Chris C. Holmes and Leonhard Held.
 
 multilogit_holmesheld was programmed following the pseudo-code from the Holmes-Held paper referenced below.
 multilogit_PG is adapted from code included in the BayesLogit thesis version by Jesse Windle: https://github.com/jwindle/BayesLogit-Thesis/.
@@ -30,7 +30,7 @@ Maintainer: \packageMaintainer{BayesMultiLogit}
 }
 \keyword{ package }
 \seealso{
-\code{\link{multilogit}}, \code{\link{multilogit_ESS}},
+\code{\link{multilogit_AMH}}, \code{\link{multilogit}}, \code{\link{multilogit_ESS}},
 \code{\link{multilogit_PG}}, and \code{\link{multilogit_holmesheld}}.
 }
 \examples{
@@ -41,6 +41,8 @@ Y[101:150, 3] <- 1
 
 X <- cbind(1, iris[ , 1:4])
 X <- as.matrix(X)
+
+out0 <- multilogit_AMH(Y, X, n_sample = 20, n_burn = 10, progress = FALSE)
 
 out1 <- multilogit(Y, X, n_sample = 500, n_burn = 200, prior = "normal", progress = FALSE)
 

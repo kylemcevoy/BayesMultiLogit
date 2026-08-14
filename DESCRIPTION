@@ -1,6 +1,6 @@
 Package: BayesMultiLogit
 Type: Package
-Title: Data Augmentation Methods for Bayesian Multinomial Logistic Regression
+Title: Bayesian Multinomial Logistic Regression Samplers
 Version: 0.1.0
 Authors@R: c(
     person("Jared", "Fisher", role = "aut"),
@@ -8,8 +8,9 @@ Authors@R: c(
     )
 Author: Jared Fisher [aut], Kyle R. McEvoy [aut, cre]
 Maintainer: Kyle R. McEvoy <kylemcevoy@ucla.edu>
-Description: Implements several data-augmentation Markov chain Monte Carlo
-    methods for Bayesian multinomial logistic regression.
+Description: Implements several Markov chain Monte Carlo methods for Bayesian
+    multinomial logistic regression, including direct adaptive
+    Metropolis-Hastings and multiple data-augmentation samplers.
 License: GPL (>= 3)
 Encoding: UTF-8
 URL: https://github.com/kylemcevoy/BayesMultiLogit

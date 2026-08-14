@@ -13,6 +13,8 @@ test_that("all wrappers reject malformed common inputs", {
     function(Y, X, n_sample = 1, n_burn = 0, probs = FALSE, ...)
       multilogit_ESS(Y, X, n_sample, n_burn, probs = probs, progress = FALSE, ...),
     function(Y, X, n_sample = 1, n_burn = 0, probs = FALSE, ...)
+      multilogit_AMH(Y, X, n_sample, n_burn, probs = probs, progress = FALSE, ...),
+    function(Y, X, n_sample = 1, n_burn = 0, probs = FALSE, ...)
       multilogit_PG(Y, X, n_sample, n_burn, probs = probs, progress = FALSE, ...),
     function(Y, X, n_sample = 1, n_burn = 0, probs = FALSE, ...)
       multilogit_holmesheld(Y, X, n_sample = n_sample, n_burn = n_burn,
@@ -39,4 +41,10 @@ test_that("count and prior validation matches sampler requirements", {
   expect_error(multilogit_ESS(dat$Y, dat$X, reference_cat = c(1, 2)),
                "single integer")
   expect_error(multilogit_PG(dat$Y, dat$X, n_burn = -1), "non-negative integer")
+  expect_error(multilogit_AMH(dat$Y, dat$X, acceptance_lower = 0.5,
+                              acceptance_upper = 0.4), "Acceptance bounds")
+  expect_error(multilogit_AMH(dat$Y, dat$X, step_decrease = 1),
+               "strictly between")
+  expect_error(multilogit_AMH(dat$Y, dat$X, reference_cat = 4),
+               "single integer")
 })

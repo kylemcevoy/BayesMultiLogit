@@ -35,6 +35,9 @@ test_that("samplers return finite arrays with normalized probabilities", {
     multilogit_ESS(dat$Y, dat$X, n_sample = 3, n_burn = 1,
                    prior_mean = c(0.5, -0.25), reference_cat = 3,
                    probs = TRUE, progress = FALSE),
+    multilogit_AMH(dat$Y, dat$X, n_sample = 3, n_burn = 2,
+                   n_sigma_check = 1, reference_cat = 2,
+                   probs = TRUE, progress = FALSE),
     multilogit_PG(dat$Y, dat$X, n_sample = 3, n_burn = 1,
                   probs = TRUE, progress = FALSE),
     multilogit_holmesheld(dat$Y, dat$X, n_sample = 3, n_burn = 1,
@@ -45,4 +48,23 @@ test_that("samplers return finite arrays with normalized probabilities", {
 
   for (out in outputs)
     check_output(out, dat$X, ncol(dat$Y), 3, TRUE)
+})
+
+test_that("adaptive MH returns coherent diagnostics and fixes its reference", {
+  dat <- make_smoke_data()
+  set.seed(123)
+  out <- multilogit_AMH(
+    dat$Y, dat$X, n_sample = 5, n_burn = 3, n_sigma_check = 2,
+    prior_mean = c(0.25, -0.1), prior_var = diag(c(2, 0.5)),
+    reference_cat = 2, progress = FALSE
+  )
+
+  expect_true(all(out$posterior_coef[, 2, ] == 0))
+  expect_equal(dim(out$acceptance_rate), c(ncol(dat$X), ncol(dat$Y)))
+  expect_equal(dim(out$final_step_size), c(ncol(dat$X), ncol(dat$Y)))
+  expect_true(all(is.na(out$acceptance_rate[, 2])))
+  expect_true(all(is.na(out$final_step_size[, 2])))
+  expect_true(all(out$acceptance_rate[, -2] >= 0 &
+                  out$acceptance_rate[, -2] <= 1))
+  expect_true(all(out$final_step_size[, -2] > 0))
 })

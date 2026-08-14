@@ -25,6 +25,41 @@ dmvnrm_arma <- function(x, mean, sigma, logd = FALSE) {
     .Call(`_BayesMultiLogit_dmvnrm_arma`, x, mean, sigma, logd)
 }
 
+#' Adaptive Metropolis-Hastings Multinomial Logistic Regression
+#'
+#' Samples a Bayesian multinomial logistic regression posterior using
+#' coordinate-wise random-walk Metropolis-Hastings proposals. Proposal scales
+#' adapt during burn-in and remain fixed while retained draws are generated.
+#' The selected reference category is held at zero.
+#'
+#' The implementation caches the linear predictors and uses log-sum-exp
+#' calculations throughout. Coefficients for each non-reference category have
+#' a common multivariate normal prior.
+#'
+#' @param Y An N by C matrix of non-negative category counts with a positive
+#' row total.
+#' @param X An N by P numeric design matrix.
+#' @param n_sample Positive number of retained draws.
+#' @param n_burn Non-negative number of burn-in draws.
+#' @param n_sigma_check Positive adaptation-window length.
+#' @param step_size Positive initial random-walk standard deviation.
+#' @param acceptance_lower Lower target acceptance rate.
+#' @param acceptance_upper Upper target acceptance rate.
+#' @param step_increase Multiplicative scale increase greater than one.
+#' @param step_decrease Multiplicative scale decrease between zero and one.
+#' @param prior_mean Length-P normal-prior mean.
+#' @param prior_var P by P positive-definite normal-prior covariance matrix.
+#' @param reference_cat Zero-based reference-category index. Most users should
+#' call `multilogit_AMH()` instead.
+#' @param probs If TRUE, return fitted probabilities for retained draws.
+#' @param progress If TRUE, print progress every 1,000 iterations.
+#'
+#' @return A list containing `posterior_coef`, `acceptance_rate`, and
+#' `final_step_size`; when requested, it also contains `posterior_prob`.
+multilogit_AMH_C <- function(Y, X, n_sample, n_burn, n_sigma_check, step_size, acceptance_lower, acceptance_upper, step_increase, step_decrease, prior_mean, prior_var, reference_cat, probs, progress) {
+    .Call(`_BayesMultiLogit_multilogit_AMH_C`, Y, X, n_sample, n_burn, n_sigma_check, step_size, acceptance_lower, acceptance_upper, step_increase, step_decrease, prior_mean, prior_var, reference_cat, probs, progress)
+}
+
 #' Multinomial Logistic Regression using Data Augmentation (Metropolis-Hastings)
 #' 
 #' This function implements a data augmentation method for

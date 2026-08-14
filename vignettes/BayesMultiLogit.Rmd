@@ -33,9 +33,9 @@ located at <https://gallery.rcpp.org/articles/dmvnorm_arma/>.
 
 ## Using the Functions
 
-The package contains four wrapper functions for performing Bayesian multinomial logistic regression. These wrappers validate dimensions, response values, iteration counts, flags, and prior parameters before calling the C++ samplers.
+The package contains five wrapper functions for performing Bayesian multinomial logistic regression. These wrappers validate dimensions, response values, iteration counts, flags, and prior parameters before calling the C++ samplers. `multilogit_AMH()` targets the multinomial likelihood directly; the remaining methods use data augmentation.
 
-Each function expects matrix-like `Y` and `X` inputs. `Y` is an $N$ by $C$ matrix with one row per observation, and `X` is an $N$ by $P$ design matrix. The Metropolis-Hastings, elliptical slice, and Polya-Gamma samplers accept non-negative category counts with a positive row total. The Holmes-Held sampler requires one-hot rows. The first column of `X` should be an intercept column of ones; centering and scaling the remaining columns is generally helpful.
+Each function expects matrix-like `Y` and `X` inputs. `Y` is an $N$ by $C$ matrix with one row per observation, and `X` is an $N$ by $P$ design matrix. The direct adaptive Metropolis-Hastings, augmented Metropolis-Hastings, augmented elliptical slice, and Polya-Gamma samplers accept non-negative category counts with a positive row total. The Holmes-Held sampler requires one-hot rows. The first column of `X` should be an intercept column of ones; centering and scaling the remaining columns is generally helpful.
 
 When priors on the coefficients are specified the mean should be a vector with length equal to $P$ the number of columns of $X$ including the intercept column, and the prior variance should be a $P$ by $P$ square matrix. In general the functions do not allow for different priors across categories and they assume independence across categories as well.  
 
@@ -63,6 +63,9 @@ Y <- sapply(c(1,2,3), function(x) Y[, x] <- as.numeric((as.numeric(iris$Species)
 
 out1 <- multilogit(Y, X, n_sample = 100, n_burn = 50, reference_cat = 1,
                    progress = FALSE)
+
+out0 <- multilogit_AMH(Y, X, n_sample = 100, n_burn = 50,
+                       reference_cat = 1, progress = FALSE)
 
 out2 <- multilogit_ESS(Y, X, n_sample = 100, n_burn = 50,
                        probs = FALSE, progress = FALSE)

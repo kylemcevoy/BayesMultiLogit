@@ -1,8 +1,9 @@
 # BayesMultiLogit
 
-BayesMultiLogit implements four MCMC approaches to Bayesian multinomial
-logistic regression: random-walk Metropolis-Hastings with gamma augmentation, elliptical slice
-sampling with gamma augmentation, Polya-Gamma augmentation, and Holmes-Held augmentation. See 
+BayesMultiLogit implements five MCMC approaches to Bayesian multinomial
+logistic regression: direct adaptive Metropolis-Hastings, random-walk
+Metropolis-Hastings with gamma augmentation, elliptical slice sampling with
+gamma augmentation, Polya-Gamma augmentation, and Holmes-Held augmentation. See
 "Bayesian Multinomial Logistic Regression for Numerous Categories" by Jared D. Fisher and Kyle 
 R. McEvoy for further detail.
 
@@ -17,7 +18,8 @@ remotes::install_github("kylemcevoy/BayesMultiLogit")
 
 All wrapper functions accept an `N` by `C` response matrix `Y` and an `N` by
 `P` design matrix `X`. `Y` may contain non-negative category counts for
-`multilogit()`, `multilogit_ESS()`, and `multilogit_PG()`. The Holmes-Held
+`multilogit_AMH()`, `multilogit()`, `multilogit_ESS()`, and `multilogit_PG()`.
+The Holmes-Held
 sampler requires a one-hot response with exactly one 1 per row. The first
 column of `X` should normally be an intercept column of ones.
 
@@ -36,6 +38,10 @@ fit <- multilogit_ESS(
 dim(fit$posterior_coef) # P x C x n_sample
 dim(fit$posterior_prob) # N x C x n_sample
 ```
+
+For a direct posterior sampler without augmentation, use
+`multilogit_AMH()`. It returns final proposal scales and retained-sampling
+acceptance rates in addition to posterior draws.
 
 The normal-prior samplers require positive-definite covariance matrices.
 Using a reference category is recommended when identifiable category-specific
@@ -72,4 +78,3 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
