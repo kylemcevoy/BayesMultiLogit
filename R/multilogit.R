@@ -51,7 +51,7 @@
 #' 
 
 multilogit <- function(Y, X, n_sample = 1000, n_burn = 200, n_sigma_check = 20, step_size = 0.1, prior = "flat",
-                      prior_mean = NULL, prior_var = NULL, reference_cat = NULL, probs = TRUE, progress = TRUE){
+                      prior_mean = NULL, prior_var = NULL, reference_cat = NULL, probs = FALSE, progress = TRUE){
   # Here, we consider Y to be a matrix of counts with number of rows equal to the number of subjects, and the number of columns equal to the number of categories. 
   # In other words, Y's dimensions are n_sub x n_cat
   Y = as.matrix(Y)
