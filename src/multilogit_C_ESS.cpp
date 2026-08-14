@@ -21,7 +21,7 @@ using namespace arma;
 //' 
 //' The sampler uses the elliptical slice sampling algorithm
 //' from the Murray, Adams, Mackay (2010) paper Elliptical Slice Sampling in the Journal of
-//' Machine Learning Research. This sampler requires a multivariate normal prior on the betas.
+//' Machine Learning Research. This sampler requires a multivariate normal prior on the betas, with mean zero.
 //'
 //' @param Y An N by C numeric matrix where the ith row is a set of
 //' indicators for observation i of N total observations giving which
