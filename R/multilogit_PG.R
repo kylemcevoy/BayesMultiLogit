@@ -34,7 +34,7 @@
 #' X <- scale(iris[ , 1:4])
 #' X <- cbind(1, X)
 #' out2 <- multilogit_PG(Y, X, n_sample = 2000, n_burn = 1000, probs = TRUE, progress = TRUE)
-multilogit_PG <- function(Y, X, n_sample = 1000L, n_burn = 200L, probs = TRUE, progress = TRUE){
+multilogit_PG <- function(Y, X, n_sample = 1000L, n_burn = 200L, probs = FALSE, progress = TRUE){
   # Here, we consider Y to be a matrix of counts with number of rows equal to the number of subjects, and the number of columns equal to the number of categories. 
   # In other words, Y's dimensions are n_sub x n_cat
   Y = as.matrix(Y)
