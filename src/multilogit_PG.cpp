@@ -70,6 +70,11 @@ List multilogit_PG_C(arma::mat const &Y,
   
   arma::mat m_0(P, Q-1, fill::zeros);
   arma::cube P_0(P, P, Q - 1, fill::zeros);
+  // For Normal(0,1) priors, adjust the prior precision matrix as follows:
+  for (size_t j = 0; j < Q - 1; ++j) {
+      P_0.slice(j).eye();
+  }
+
   
   arma::mat w(N, Q, fill::zeros);
   arma::mat beta(P, Q, fill::zeros);
@@ -145,12 +150,16 @@ List multilogit_PG_C(arma::mat const &Y,
       arma::vec c_j = log(A);
       */
 
-      // Five lines below are a 2026 edit; the zero'd column 
+      // Eight lines below are a 2026 edit suggested by codex; the zero'd column is only counted once, and log-sum-exp is more numerically stable. 
       // Trying again to exclude category j.
       arma::mat beta_woj = beta;
       beta_woj.shed_col(j);
       // Use a stable row-wise log-sum-exp here.
-      arma::vec c_j = log(sum(exp(X * beta_woj), 1));
+      arma::mat lp = X * beta_woj;
+      arma::vec lp_max = max(lp, 1);
+      lp.each_col() -= lp_max;
+      arma::vec c_j = lp_max + log(sum(exp(lp), 1));
+      // end 2026 edit
       
       arma::mat eta_j = (X * beta.col(j)) - c_j;
     
@@ -173,7 +182,7 @@ List multilogit_PG_C(arma::mat const &Y,
       // arma::mat bl_j = X.t() * (kappa.col(j) - (c_j % w.col(j)));
       
       arma::mat P1_j = PL_j + P_0.slice(j);
-      
+      /*
       arma::mat v1_j = inv(P1_j);
       
       arma::mat m1_j = v1_j * (bl_j + b_0.col(j));
@@ -183,6 +192,52 @@ List multilogit_PG_C(arma::mat const &Y,
       arma::vec Tp = Rcpp::as<arma::vec>(Rcpp::rnorm(P));
       
       beta.col(j) = m1_j + sqrtv1_j * Tp;
+      */ //above is remove and replace with block below for numerical stability as per Codex's suggestion, 2026. ONLY WORKS FOR N(0,1) PRIORS ON BETAS.
+
+      // Remove tiny numerical asymmetry.
+      P1_j = arma::symmatu(P1_j);
+      
+      arma::vec h_j = bl_j + b_0.col(j);
+      
+      // P1_j = L_j * L_j.t()
+      arma::mat L_j;
+      bool chol_ok = arma::chol(L_j, P1_j, "lower");
+      
+      if (!chol_ok) {
+        Rcpp::stop(
+          "Posterior precision was not positive definite "
+          "while updating category %d.", static_cast<int>(j + 1)
+        );
+      }
+      
+      // Posterior mean: P1_j^{-1} h_j.
+      // First solve L_j u_j = h_j, then L_j.t() m1_j = u_j.
+      arma::vec u_j = arma::solve(
+        arma::trimatl(L_j),
+        h_j,
+        arma::solve_opts::fast
+      );
+      
+      arma::vec m1_j = arma::solve(
+        arma::trimatu(L_j.t()),
+        u_j,
+        arma::solve_opts::fast
+      );
+      
+      // If z ~ N(0,I), then L_j^{-T}z has covariance P1_j^{-1}.
+      arma::vec z_j =
+        Rcpp::as<arma::vec>(Rcpp::rnorm(P));
+      
+      arma::vec posterior_noise = arma::solve(
+        arma::trimatu(L_j.t()),
+        z_j,
+        arma::solve_opts::fast
+      );
+      
+      beta.col(j) = m1_j + posterior_noise;
+      // end 2026 edit. 
+
+
       
       if (i >= n_burn)
       {
