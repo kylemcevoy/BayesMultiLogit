@@ -329,7 +329,7 @@ List multilogit_C(
     
     if(iter < n_burn) {
       
-      if((iter % n_sigma_check) == 0) {  
+      if(((iter+1) % n_sigma_check) == 0) {  
         
         for(size_t j = 0; j < nCat; j++) { //can parallelize this in the future???
           
