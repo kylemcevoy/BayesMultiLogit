@@ -10,6 +10,7 @@
 
 #include "RcppArmadillo.h"
 #include "lambda_sampler.h"
+#include "numerical_utils.h"
 #include "trunc_logis.h"
 using namespace Rcpp;
 using namespace arma;
@@ -77,13 +78,12 @@ List multilogit_holmesheld_C(
    * Create storage objects
    */
   arma::mat Z(N, Q - 1, fill::zeros);
-  arma::cube lambda(N,N,Q-1,fill::zeros);
+  // Only the diagonal of each latent covariance matrix is ever used.
+  arma::mat lambda(N, Q - 1, fill::ones);
   
   //output objects
   
-  arma::cube beta(P, Q, n_sample + n_burn, fill::zeros);
-  arma::cube prob(N, Q, n_sample + n_burn, fill::zeros); 
-  
+  arma::mat beta(P, Q, fill::zeros);
   arma::cube beta_out(P, Q, n_sample, fill::zeros);
   arma::cube prob_out(N, Q, n_sample, fill::zeros);
 
@@ -91,11 +91,6 @@ List multilogit_holmesheld_C(
   // R code asks for this vectorized identity matrix approach:
   // Lambda <- array(data = as.vector(diag(N)), dim = c(N, N, (Q - 1)))
   // will just 0's work? or will the following work? 
-  arma::mat identity(N, N, fill::eye);
-  for(size_t i = 0; i < Q - 1; i++){
-    lambda.slice(i) = identity; 
-  }
-  
   //creates a NxQ NumericMatrix filled with 0s. This will be interpreted as logical in the right argument of trunc_logis.
   
   NumericMatrix right_switch(N,Q);
@@ -136,26 +131,23 @@ List multilogit_holmesheld_C(
   /**
    * Cache frequently used values
    */
-  arma::mat v_inv = inv(v);
+  arma::mat v_inv = inv_sympd(v);
   
   
   /**
    * Temporary objects needed inside MCMC
    */
-  arma::mat V(P,P, fill::zeros);
   arma::mat L(P,P, fill::zeros);
   arma::vec B(P, fill::zeros);
-  arma::mat lambda_inv(N,N, fill::zeros);
-  arma::vec Tp(P, fill::zeros);
   double m{ 0 };
   double R{ 0 };
-  double C{ 0 };
   arma::mat beta_slice(P, Q, fill::zeros);
   
   /** 
    * MCMC
    */
   for(size_t i=0;i<n_sample + n_burn;i++){
+    if ((i & 63U) == 0U) Rcpp::checkUserInterrupt();
     
     // status report
     if( progress == true && ((i%1000) == 0 || (i + 1) == n_burn + n_sample)){
@@ -165,82 +157,68 @@ List multilogit_holmesheld_C(
     
     for(size_t q=0;q<(Q-1);q++){
       
-      lambda_inv = inv(lambda.slice(q));
+      arma::vec weights = 1.0 / lambda.col(q);
+      arma::mat X_weighted = X.each_col() % weights;
+      arma::mat precision = arma::symmatu(X.t() * X_weighted + v_inv);
+      if (!chol(L, precision, "lower")) {
+        Rcpp::stop("Posterior precision was not positive definite while updating category %d.",
+                   static_cast<int>(q + 1));
+      }
+      arma::vec rhs = X.t() * (weights % Z.col(q));
+      arma::vec intermediate = solve(trimatl(L), rhs, solve_opts::fast);
+      B = solve(trimatu(L.t()), intermediate, solve_opts::fast);
+      arma::vec noise = solve(trimatu(L.t()),
+                              Rcpp::as<arma::vec>(Rcpp::rnorm(P)),
+                              solve_opts::fast);
+      beta.col(q) = B + noise;
+      beta_slice = beta;
       
-      V = inv( X.t() * lambda_inv * X + v_inv); //using solve in a wise way is probably faster than inv???
-      L = chol(V,"lower"); // we want lower triangular right? 
       
-      B = V * X.t() * lambda_inv * Z.col(q);
-      
-      Tp = Rcpp::rnorm(P, 0, 1);
-      
-      beta.subcube(0, q, i, (P - 1), q, i) = B + (L * Tp);
-      
-      arma::mat beta_slice = beta.slice(i);
-      
-      
-      for (size_t j = 0; j < N-1;j++){
+      for (size_t j = 0; j < N; j++){
         
         m = as_scalar(X.row(j) * beta_slice.col(q));
         
-        C = sum(arma::exp(X.row(j) * beta_slice)) - arma::as_scalar(exp(X.row(j) * beta_slice.col(q)));
-        
-        double loc = m - std::log(C);
+        arma::rowvec eta = X.row(j) * beta_slice;
+        double log_C = row_log_sum_exp_excluding(eta, q);
+        double loc = m - log_C;
         
         
         if (right_switch(j,q))
         {
           
-          Z(j,q) = trunc_logis(loc, 1, TRUE) + log(C);
+          Z(j,q) = trunc_logis(loc, 1, TRUE) + log_C;
           
         }
         
         else
         {
-          Z(j,q) = trunc_logis(loc, 1, FALSE) + log(C);
+          Z(j,q) = trunc_logis(loc, 1, FALSE) + log_C;
         }
         
         R = Z(j,q) - m;
         
         // #abs(R) is necessary as the parameter r must be a positive real number.
-        lambda(j,j,q) = lambda_sampler(R);
+        lambda(j,q) = lambda_sampler(R);
         
       } // end j loop through observations
       
     } // end q loop through categories
       
-    beta_slice = beta.slice(i);
+    beta_slice = beta;
+
+    if (i >= n_burn)
+      beta_out.slice(i - n_burn) = beta;
     
-    if (probs == true){
+    if (probs == true && i >= n_burn){
       
-      prob.slice(i) = exp(X * beta_slice);
-      
-      arma::vec prob_slice_sums = sum(prob.slice(i), 1);
-      
-      for (size_t j = 0; j <= N - 1; j++)
-      {
-        for (size_t q = 0; q <= Q - 1; q++)
-        {
-          prob(j, q, i) = prob(j, q, i) / as_scalar(prob_slice_sums(j)); 
-          
-        }
-      
-      }
+      for (size_t j = 0; j < N; ++j)
+        prob_out.slice(i - n_burn).row(j) = softmax(X.row(j) * beta_slice);
     
     }
     //}
      
       
   } //end i loop over mcmc iterations 
-  
-  beta_out = beta.subcube(0, 0, n_burn, P - 1, Q - 1, n_burn + n_sample - 1);
-  
-  if (probs == true){
-    
-    prob_out = prob.subcube(0, 0, n_burn, N - 1, Q - 1, n_burn + n_sample - 1);
-    
-    }
-  
   
   if (probs == true){
     
@@ -261,5 +239,3 @@ List multilogit_holmesheld_C(
     
     
 }
-
-

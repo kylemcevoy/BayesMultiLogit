@@ -9,7 +9,7 @@ multilogit_PG(
   X,
   n_sample = 1000L,
   n_burn = 200L,
-  probs = TRUE,
+  probs = FALSE,
   progress = TRUE
 )
 }
@@ -40,8 +40,6 @@ n_sample array containing the calculated probabilities of the observations
 being classified into each of the C categories is also returned in the list.
 }
 \description{
-WARNING: This function can result in R freezing in a non-interruptable state.
-
 This is an R wrapper to the function \code{multilogit_PG_C}.
 This function implements the Polya-Gamma method for
 multinomial logistic regression. Rewritten for C++ by Jared Fisher

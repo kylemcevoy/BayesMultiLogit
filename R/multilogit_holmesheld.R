@@ -24,9 +24,9 @@
 #' @param probs logical If TRUE categorical probabilities will be calculated and returned for
 #' non-burn samples.
 #' @param progress logical If TRUE the function will report its progress each thousandth iteration.
-#' @param fast logical If TRUE the wrapper function will call \code{multilogit_hh_inv_C} as opposed to 
-#' \code{mulitlogit_holmesheld_C}. \code{multilogit_hh_inv_C} uses faster matrix inverse functions so is faster, 
-#' but is more prone to errors due to numerical tolerance issues when inverting the matrices.
+#' @param fast logical If TRUE the wrapper calls \code{multilogit_hh_inv_C}
+#' instead of \code{multilogit_holmesheld_C}. Retained for backward
+#' compatibility; both implementations now use stable precision factorizations.
 #' @family Holmes-Held methods.
 #' @seealso \code{multilogit_holmesheld_C} and \code{multilogit_hh_inv_C} for the C++ functions without
 #' error checking.
@@ -52,35 +52,22 @@ multilogit_holmesheld <- function(Y,
                                   probs = TRUE,
                                   progress = TRUE,
                                   fast = FALSE) {
-  # Here, we consider Y to be a matrix of indicators with number of rows equal to the number of subjects, and the number of columns equal to the number of categories. 
-  # In other words, Y's dimensions are n_sub x n_cat
-  Y = as.matrix(Y)
-  X = as.matrix(X)
-  v = as.matrix(v)
-  
-  n_sub = nrow(Y)
-  n_cat = ncol(Y)
-  # X is a n_sub x n_pred matrix of covariates, aka the design matrix. 
-  n_pred = ncol(X)
-  
-  if(nrow(X) != n_sub){
-    stop("unequal number of rows in X and Y")
-  }
-  
-  if(!isSymmetric(v) | any(eigen(v)$values < 0)   ){
-    stop("Variance matrix v is not a symmetric positive semi-definite matrix.")
-  }
-  
-  if(!identical(X[,1], rep(1, nrow(X)))){
-    warning("Function expects first column of the design matrix to be an intercept column.")
-  }
-  
-  if(!all.equal(dim(v), c(n_pred, n_pred))){
-    stop("v should be a square matrix with each dimension equal to the number of predictors (including intercept).")
-  }
+  data <- .validate_data(Y, X, indicator = TRUE)
+  Y <- data$Y
+  X <- data$X
+  n_pred <- ncol(X)
+
+  n_sample <- .validate_scalar_integer(n_sample, "n_sample", 1L)
+  n_burn <- .validate_scalar_integer(n_burn, "n_burn", 0L)
+  .validate_iteration_total(n_sample, n_burn)
+  probs <- .validate_flag(probs, "probs")
+  progress <- .validate_flag(progress, "progress")
+  fast <- .validate_flag(fast, "fast")
+  v <- .validate_covariance(v, n_pred, "v")
+  .warn_missing_intercept(X)
   
   
-  if (fast == TRUE){
+  if (fast) {
     out <- multilogit_hh_inv_C(Y = Y, X = X, v = v, n_sample = n_sample, n_burn = n_burn,
                                probs = probs, progress = progress)
     
@@ -92,5 +79,5 @@ multilogit_holmesheld <- function(Y,
   }
  
   
-  return(out)
+  out
 }

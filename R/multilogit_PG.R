@@ -1,9 +1,7 @@
 #' Multinomial Logistic Regression using the Polya-Gamma Method
 #' 
 #' 
-#' @description WARNING: This function can result in R freezing in a non-interruptable state.
-#' 
-#' This is an R wrapper to the function \code{multilogit_PG_C}.
+#' @description This is an R wrapper to the function \code{multilogit_PG_C}.
 #' This function implements the Polya-Gamma method for
 #' multinomial logistic regression. Rewritten for C++ by Jared Fisher
 #' and Kyle McEvoy, but code originally written by Jesse Windle, James Scott and Nick Polson.
@@ -35,41 +33,17 @@
 #' X <- cbind(1, X)
 #' out2 <- multilogit_PG(Y, X, n_sample = 2000, n_burn = 1000, probs = TRUE, progress = TRUE)
 multilogit_PG <- function(Y, X, n_sample = 1000L, n_burn = 200L, probs = FALSE, progress = TRUE){
-  # Here, we consider Y to be a matrix of counts with number of rows equal to the number of subjects, and the number of columns equal to the number of categories. 
-  # In other words, Y's dimensions are n_sub x n_cat
-  Y = as.matrix(Y)
-  X = as.matrix(X)
-  
-  n_sub = nrow(Y)
-  n_cat = ncol(Y)
-  # X is a n_sub x n_pred matrix of covariates, aka the design matrix. 
-  n_pred = ncol(X)
-  
-  if(nrow(X) != n_sub){
-    stop("unequal number of rows in X and Y")
-  }
-  
-  
-  if(!identical(X[,1], rep(1, nrow(X)))){
-    warning("Function expects first column of the design matrix to be an intercept column.")
-  }
-
-  if (ncol(Y) < 2L)
-  stop("Y must contain at least two categories.")
-
-  if (ncol(X) < 1L)
-  stop("X must contain at least one predictor.")
-
-  if (any(!is.finite(Y)) || any(!is.finite(X)))
-  stop("X and Y must contain only finite values.")
-
-  if (any(Y < 0) || any(Y != floor(Y)))
-  stop("Y must contain nonnegative integer counts.")
-
-  if (any(rowSums(Y) <= 0))
-  stop("Every row of Y must have a positive total count.")
+  data <- .validate_data(Y, X)
+  Y <- data$Y
+  X <- data$X
+  n_sample <- .validate_scalar_integer(n_sample, "n_sample", 1L)
+  n_burn <- .validate_scalar_integer(n_burn, "n_burn", 0L)
+  .validate_iteration_total(n_sample, n_burn)
+  probs <- .validate_flag(probs, "probs")
+  progress <- .validate_flag(progress, "progress")
+  .warn_missing_intercept(X)
   
   out <- multilogit_PG_C(Y = Y, X = X, n_sample = n_sample, n_burn = n_burn, probs = probs, progress = progress)
   
-  return(out)
+  out
 }

@@ -1,5 +1,6 @@
 #include "dmvnrm_arma.h"
 #include "RcppArmadillo.h"
+#include "numerical_utils.h"
 
 
 // via the depends attribute we tell Rcpp to create hooks for
@@ -34,6 +35,8 @@ using namespace arma;
 //'  before the chain output is saved.
 //' @param n_sigma_check non-negative integer gives the period for the number of
 //' samples on which to automatically tune the step size of the random walk.
+//' @param step_size finite positive standard deviation for the random-walk
+//' proposal distribution.
 //' @param prior character with either values "flat" or "normal"
 //' @param prior_mean a vector of length equal to P the number of predictors.
 //' Giving the mean for the normal prior on the coefficient vector. Only use if
@@ -100,6 +103,7 @@ List multilogit_C(
   
   arma::rowvec beta_mean;
   arma::mat beta_var;
+  arma::mat beta_precision;
   size_t reference_beta = NA_INTEGER;
   
   if(prior_mean.isNotNull())
@@ -118,28 +122,22 @@ List multilogit_C(
     
     
   }
-  
+
   if(prior_var.isNotNull())
   {
     NumericMatrix v2(prior_var);
-    
     beta_var = Rcpp::as<arma::mat>(v2);
-    
-    
   }
-  
-  
   else
   {
-    
     beta_var = mat(nPred, nPred, fill::eye);
-    
     if(prior == "normal")
-      {
+    {
       Rcout << "Default prior variance is I_P\n";
-      }
-    
+    }
   }
+
+  if (prior == "normal") beta_precision = inv_sympd(beta_var);
   
   
   if(reference_cat.isNotNull())
@@ -171,9 +169,8 @@ List multilogit_C(
       prob_out.set_size(nSub, nCat, n_sample);
       prob.set_size(nSub, nCat);
   }
-  arma::vec phi(nSub, fill::ones);
+  arma::vec log_phi(nSub, fill::zeros);
   // arma::mat phi_out(nSub, n_sample);
-  double rate;
   size_t counter=0;
   
   // needed for random walk Metropolis:
@@ -189,6 +186,7 @@ List multilogit_C(
    * MCMC
    */
   for(size_t iter=0; iter < (n_burn + n_sample); iter++) {
+    if ((iter & 63U) == 0U) Rcpp::checkUserInterrupt();
     
     if( progress == true && ((iter%1000) == 0 || (iter + 1) == n_burn + n_sample)) {
       
@@ -202,9 +200,8 @@ List multilogit_C(
      */
     for(size_t i = 0; i < nSub; i++) { //can parallelize this in the future???
       
-      rate = sum(exp(X.row(i) * beta)); //colptr for future speed up???
-      
-      phi(i) = (R::rgamma(nObs[i],1)) / rate;
+      arma::rowvec eta = X.row(i) * beta;
+      log_phi(i) = std::log(R::rgamma(nObs[i], 1)) - row_log_sum_exp(eta);
       
     }
     
@@ -235,10 +232,12 @@ List multilogit_C(
         
         // calculate proposal's posterior
         // numerator = exp(dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal)));
-        lnumerator = (dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal)));
+        arma::vec eta_current = X * beta.col(j);
+        arma::vec eta_proposal = eta_current + X.col(k) * (proposal - beta(k, j));
+        lnumerator = dot(Y.col(j), eta_proposal) - accu(exp(log_phi + eta_proposal));
         // calculate current value's posterior 
         //denominator = exp(dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j))));
-        ldenominator = (dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j))));
+        ldenominator = dot(Y.col(j), eta_current) - accu(exp(log_phi + eta_current));
         
         // accept/reject
         // if((numerator / denominator) > R::runif(0,1)) {
@@ -283,14 +282,18 @@ List multilogit_C(
           // calculate proposal's posterior
 //          numerator = exp(dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal))) * 
   //          dmvnrm_arma(row_beta_wp, beta_mean, beta_var);
-          lnumerator = (dot(Y.col(j), X * betaWITHproposal) - dot(phi, exp(X * betaWITHproposal))) +
-            dmvnrm_arma(row_beta_wp, beta_mean, beta_var,  true);
+          arma::vec eta_current = X * beta.col(j);
+          arma::vec eta_proposal = eta_current + X.col(k) * (proposal - beta(k, j));
+          arma::rowvec centered_proposal = row_beta_wp - beta_mean;
+          lnumerator = (dot(Y.col(j), eta_proposal) - accu(exp(log_phi + eta_proposal))) +
+            (-0.5 * as_scalar(centered_proposal * beta_precision * centered_proposal.t()));
           
           // calculate current value's posterior 
           //denominator = exp(dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j)))) *
             //dmvnrm_arma(row_beta, beta_mean, beta_var);
-          ldenominator = (dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j)))) +
-            dmvnrm_arma(row_beta, beta_mean, beta_var, true);
+          arma::rowvec centered_current = row_beta - beta_mean;
+          ldenominator = (dot(Y.col(j), eta_current) - accu(exp(log_phi + eta_current))) +
+            (-0.5 * as_scalar(centered_current * beta_precision * centered_current.t()));
 
           
           // accept/reject
@@ -315,9 +318,7 @@ List multilogit_C(
       
       for(size_t i = 0; i < nSub; i++) {
         
-        double temp_rate = sum(exp(X.row(i) * beta));
-        
-        prob.row(i) = exp(X.row(i) * beta) / temp_rate;
+        prob.row(i) = softmax(X.row(i) * beta);
         
       }
       

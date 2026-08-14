@@ -41,6 +41,9 @@ samples on which to automatically tune the step size of the random walk.}
 
 \item{prior}{character with either values "flat" or "normal"}
 
+\item{step_size}{finite positive standard deviation for the random-walk
+proposal distribution.}
+
 \item{prior_mean}{a vector of length equal to P the number of predictors.
 Giving the mean for the normal prior on the coefficient vector. Only use if
 prior = "normal".}

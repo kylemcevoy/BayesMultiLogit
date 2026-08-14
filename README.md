@@ -1,6 +1,50 @@
 # BayesMultiLogit
 
-This is an R package developed by Kyle R. McEvoy and Jared D. Fisher to implement a number of methods for performing Bayesian multinomial logistic regression using data-augmentation methods. The data augmentation method underlying multilogit and multilogit_ESS is outlined in a paper by Jared D. Fisher and Kyle R. McEvoy titled "Bayesian Multinomial Logistic Regression for Numerous Categories", currently a work in progress.  
+BayesMultiLogit implements four MCMC approaches to Bayesian multinomial
+logistic regression: random-walk Metropolis-Hastings with gamma augmentation, elliptical slice
+sampling with gamma augmentation, Polya-Gamma augmentation, and Holmes-Held augmentation. See 
+"Bayesian Multinomial Logistic Regression for Numerous Categories" by Jared D. Fisher and Kyle 
+R. McEvoy for further detail.
+
+## Installation
+
+```r
+# install.packages("remotes")
+remotes::install_github("kylemcevoy/BayesMultiLogit")
+```
+
+## Input format
+
+All wrapper functions accept an `N` by `C` response matrix `Y` and an `N` by
+`P` design matrix `X`. `Y` may contain non-negative category counts for
+`multilogit()`, `multilogit_ESS()`, and `multilogit_PG()`. The Holmes-Held
+sampler requires a one-hot response with exactly one 1 per row. The first
+column of `X` should normally be an intercept column of ones.
+
+```r
+X <- cbind(1, scale(iris[, 1:4]))
+Y <- model.matrix(~ Species - 1, data = iris)
+
+fit <- multilogit_ESS(
+  Y, X,
+  n_sample = 1000,
+  n_burn = 500,
+  reference_cat = 1,
+  probs = TRUE
+)
+
+dim(fit$posterior_coef) # P x C x n_sample
+dim(fit$posterior_prob) # N x C x n_sample
+```
+
+The normal-prior samplers require positive-definite covariance matrices.
+Using a reference category is recommended when identifiable category-specific
+coefficients are required.
+
+## Attribution
+
+The data augmentation method underlying `multilogit()` and
+`multilogit_ESS()` was developed by Jared D. Fisher and Kyle R. McEvoy.
 
 The code for all functions using the Holmes-Held methods were written by us following the pseudo-code template provided in the paper:
 "Bayesian Auxiliary Variable Models for Binary and Multinomial Regression" by Chris C. Holmes and Leonhard Held, Bayesian Analysis (2006).
@@ -11,7 +55,7 @@ from the package https://github.com/jwindle/BayesLogit. The BayesLogit repositor
 The multivariate normal density function was copied from work by Nino Hardt, Dicko Ahmadou, Benjamin Christoffersen on the Rcpp Gallery
 located at https://gallery.rcpp.org/articles/dmvnorm_arma/.
 
-# License   
+## License
 
 All of the work in this package falls under the Gnu General Public License Version 3 found at https://www.gnu.org/licenses/gpl-3.0.en.html.
 
@@ -28,5 +72,4 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
 

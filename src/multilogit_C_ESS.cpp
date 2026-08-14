@@ -7,6 +7,7 @@
 
 #include "dmvnrm_arma.h"
 #include "RcppArmadillo.h"
+#include "numerical_utils.h"
 
 using namespace Rcpp;
 using namespace arma;
@@ -180,9 +181,8 @@ List multilogit_C_ESS(
         prob_out.set_size(nSub, nCat, n_sample);
         prob.set_size(nSub, nCat);
   }
-  arma::vec phi(nSub, fill::ones);
+  arma::vec log_phi(nSub, fill::zeros);
   // arma::mat phi_out(nSub, n_sample);
-  double rate;
   size_t counter=0;
   
   // needed for ESS 
@@ -200,6 +200,7 @@ List multilogit_C_ESS(
    * MCMC
    */
   for(size_t iter=0; iter < (n_burn + n_sample); iter++){
+    if ((iter & 63U) == 0U) Rcpp::checkUserInterrupt();
     
     if( progress == true && ((iter % 1000) == 0 || (iter + 1) == n_burn + n_sample) ){
       Rcout << "iteration " << iter + 1 << " of " << n_sample + n_burn << "\n";
@@ -211,16 +212,9 @@ List multilogit_C_ESS(
      * Data augmentation
      */
     for(size_t i = 0; i < nSub;i++){ //can parallelize this in the future???
-      rate = sum(exp(X.row(i) * beta)); //colptr for future speed up???
-      // Rcout << "Xbeta"<< i<< " = "<< X.row(i)*beta << std::endl;
-      // Rcout << "rate=" << rate << std::endl;
-      
-      phi(i) = (R::rgamma(nObs[i], 1)) / rate;
-      
-      // while denominator of probabilities is calculated, I figured we'd calculate the probs because it's not done elsewhere right now
-      if(probs == true){
-        prob.row(i) = exp(X.row(i) * beta) / rate;
-        }
+      arma::rowvec eta = X.row(i) * beta;
+      const double log_rate = row_log_sum_exp(eta);
+      log_phi(i) = std::log(R::rgamma(nObs[i], 1)) - log_rate;
       
     }
     
@@ -245,7 +239,9 @@ List multilogit_C_ESS(
         
         // 2 // Log-likelihood threshold
         // u = arma::randu(1);
-        loglike_threshold =  dot(Y.col(j), X * beta.col(j)) - dot(phi, exp(X * beta.col(j))) + log(R::runif(0,1));
+        arma::vec eta_current = X * beta.col(j);
+        loglike_threshold = dot(Y.col(j), eta_current) -
+          accu(exp(log_phi + eta_current)) + log(R::runif(0, 1));
         // Rcout << "denominator=" << denominator << std::endl;
         
         // 3 // Draw an initial proposal, also defining a bracket
@@ -263,11 +259,14 @@ List multilogit_C_ESS(
           // Rcout << "iter,j = " << iter << " " << j << std::endl;
           
           // 4 // f' <- f*cos(theta) + nu*sin(theta)
-          beta_proposal = beta.col(j) * cos(theta) + nu * sin(theta);
+          beta_proposal = beta_mean.t() +
+            (beta.col(j) - beta_mean.t()) * cos(theta) + nu * sin(theta);
           // Rcout << "beta_proposal=" << beta_proposal << std::endl;
           
           // 5 //
-          proposal_likelihood =  dot(Y.col(j), X * beta_proposal) - dot(phi, exp(X * beta_proposal));
+          arma::vec eta_proposal = X * beta_proposal;
+          proposal_likelihood = dot(Y.col(j), eta_proposal) -
+            accu(exp(log_phi + eta_proposal));
           
           if (proposal_likelihood > loglike_threshold){
             beta.col(j) = beta_proposal;
@@ -285,6 +284,7 @@ List multilogit_C_ESS(
           theta = R::runif(theta_min,theta_max);
           // Rcout << "theta=" << theta << std::endl;
           while_iters += 1;
+          if ((while_iters & 1023) == 0) Rcpp::checkUserInterrupt();
           
           // if(while_iters > 10000) numerator = denominator - 1;
         }
@@ -297,6 +297,8 @@ List multilogit_C_ESS(
     
  
     if(probs == true){
+      for (size_t i = 0; i < nSub; ++i)
+        prob.row(i) = softmax(X.row(i) * beta);
       
       if(iter >= n_burn){
         beta_out.slice(counter) = beta;

@@ -30,8 +30,8 @@ Maintainer: \packageMaintainer{BayesMultiLogit}
 }
 \keyword{ package }
 \seealso{
-~~ Optional links to other man pages, e.g. ~~
-~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
+\code{\link{multilogit}}, \code{\link{multilogit_ESS}},
+\code{\link{multilogit_PG}}, and \code{\link{multilogit_holmesheld}}.
 }
 \examples{
 Y <- matrix(0, nrow = 150, ncol = 3)
@@ -42,9 +42,9 @@ Y[101:150, 3] <- 1
 X <- cbind(1, iris[ , 1:4])
 X <- as.matrix(X)
 
-out1 <- multilogit(Y, X, n_sample = 3000, n_burn = 1500, prior = "normal", reference_cat = 1)
+out1 <- multilogit(Y, X, n_sample = 500, n_burn = 200, prior = "normal", progress = FALSE)
 
-out2 <- multilogit_PG(Y, X, n_sample = 4000, n_burn = 2000)
+out2 <- multilogit_PG(Y, X, n_sample = 500, n_burn = 200, progress = FALSE)
 
-out3 <- multilogit_holmesheld(Y, X, v = diag(10, nrow(X)), n_sample = 1000, n_burn = 0)
+out3 <- multilogit_holmesheld(Y, X, v = diag(ncol(X)), n_sample = 500, n_burn = 200, progress = FALSE)
 }

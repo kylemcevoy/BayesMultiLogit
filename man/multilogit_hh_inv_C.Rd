@@ -55,7 +55,7 @@ but more error prone.
 }
 \examples{
 Y <- matrix(0, nrow = 150, ncol = 3)
-Y <- sapply(c(1,2,3), \(x) Y[, x] <- as.numeric((as.numeric(iris$Species) == x) ))
+Y <- sapply(c(1,2,3), function(x) as.numeric(as.numeric(iris$Species) == x))
 X <- cbind(1, iris[ , 1:4])
 X <- as.matrix(X)
 v <- diag(1, ncol(X))
@@ -67,8 +67,8 @@ out <- multilogit_hh_inv_C(Y, X, v, n_sample = 4000, n_burn = 2000)
 checking. \code{mulitlogit_holmesheld_C} for an alternative function which is slower,
 but should have fewer errors in matrix inversions.
 
-Other Holmes-Held methods.: 
-\code{\link{multilogit_holmesheld_C}()},
-\code{\link{multilogit_holmesheld}()}
+Other Holmes-Held methods.:
+\code{\link[=multilogit_holmesheld]{multilogit_holmesheld()}},
+\code{\link[=multilogit_holmesheld_C]{multilogit_holmesheld_C()}}
 }
 \concept{Holmes-Held methods.}

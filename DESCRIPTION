@@ -1,16 +1,25 @@
 Package: BayesMultiLogit
 Type: Package
-Title: Data Augmentation methods for Bayesian Multinomial Logistic Regression
-Version: 0.1
-Date: 2020-11-14
-Author: Jared Fisher and Kyle R. McEvoy
+Title: Data Augmentation Methods for Bayesian Multinomial Logistic Regression
+Version: 0.1.0
+Authors@R: c(
+    person("Jared", "Fisher", role = "aut"),
+    person("Kyle R.", "McEvoy", email = "kylemcevoy@ucla.edu", role = c("aut", "cre"))
+    )
+Author: Jared Fisher [aut], Kyle R. McEvoy [aut, cre]
 Maintainer: Kyle R. McEvoy <kylemcevoy@ucla.edu>
-Description: This package includes functions for multiple different types of data augmented Bayesian Multinomial Logistic Regression.
+Description: Implements several data-augmentation Markov chain Monte Carlo
+    methods for Bayesian multinomial logistic regression.
 License: GPL (>= 3)
+Encoding: UTF-8
+URL: https://github.com/kylemcevoy/BayesMultiLogit
+BugReports: https://github.com/kylemcevoy/BayesMultiLogit/issues
 Imports: Rcpp (>= 1.0.5)
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 7.1.1
 Suggests: 
     rmarkdown,
-    knitr
+    knitr,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0

@@ -10,6 +10,7 @@
 
 #include "RcppArmadillo.h"
 #include "helloPG.h"
+#include "numerical_utils.h"
 
 
 using namespace Rcpp;
@@ -126,6 +127,7 @@ List multilogit_PG_C(arma::mat const &Y,
   
   for (size_t i = 0; i < (n_burn + n_sample); i++)
   {
+    if ((i & 63U) == 0U) Rcpp::checkUserInterrupt();
     if(progress == true && ((i%1000) == 0 || (i + 1) == n_burn + n_sample)){
       Rcout << "iteration " << i + 1 << " of " << n_sample + n_burn << "\n";
     }
@@ -165,15 +167,7 @@ List multilogit_PG_C(arma::mat const &Y,
     
       w.col(j) = rpg(n, eta_j);
       
-      // Need element-wise product of X and w. C++ doesn't vectorize product
-      
-      arma::mat X_omega(N, P, fill::zeros);
-      
-      for (size_t p = 0; p < P; p++)
-      {
-        X_omega.col(p) = X.col(p) % w.col(j);
-        
-      }
+      arma::mat X_omega = X.each_col() % w.col(j);
       
       arma::mat PL_j = X.t() * (X_omega);
       
@@ -258,7 +252,7 @@ List multilogit_PG_C(arma::mat const &Y,
       for(size_t row = 0; row < N ; row++)
       {
         prob_out.subcube(row, 0, i - n_burn, row, Q - 1, i - n_burn) =
-          exp(X.row(row) * beta_out.slice(i - n_burn)) / sum(  exp(X.row(row) * beta_out.slice(i - n_burn))  );
+          softmax(X.row(row) * beta_out.slice(i - n_burn));
       }
     }
 
@@ -281,4 +275,3 @@ else {
 }
   
 }
-

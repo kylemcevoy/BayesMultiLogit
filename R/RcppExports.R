@@ -16,8 +16,9 @@
 #' @param x numeric vector The vector for which you want the density to be calculated.
 #' @param mean numeric vector The vector of means for the Multivariate Normal Distribution.
 #' should be the same length as x.
-#' @param sigma numeric matrix Should be a square positive semi-definite Covariance matrix for the desired
+#' @param sigma numeric matrix Should be a square positive-definite covariance matrix for the desired
 #' multivariate normal distribution. Each dimension should be equal to the length of x. 
+#' @param logd logical; if TRUE, return the log density.
 #' @return numeric The value of the pdf of the given Multivariate Normal distribution at the specified x value.
 #' 
 dmvnrm_arma <- function(x, mean, sigma, logd = FALSE) {
@@ -48,6 +49,8 @@ dmvnrm_arma <- function(x, mean, sigma, logd = FALSE) {
 #'  before the chain output is saved.
 #' @param n_sigma_check non-negative integer gives the period for the number of
 #' samples on which to automatically tune the step size of the random walk.
+#' @param step_size finite positive standard deviation for the random-walk
+#' proposal distribution.
 #' @param prior character with either values "flat" or "normal"
 #' @param prior_mean a vector of length equal to P the number of predictors.
 #' Giving the mean for the normal prior on the coefficient vector. Only use if
@@ -93,7 +96,7 @@ multilogit_C <- function(Y, X, n_sample = 1000L, n_burn = 200L, n_sigma_check = 
 #' 
 #' The sampler uses the elliptical slice sampling algorithm
 #' from the Murray, Adams, Mackay (2010) paper Elliptical Slice Sampling in the Journal of
-#' Machine Learning Research. This sampler requires a multivariate normal prior on the betas.
+#' Machine Learning Research. This sampler requires a multivariate normal prior on the betas, with mean zero.
 #'
 #' @param Y An N by C numeric matrix where the ith row is a set of
 #' indicators for observation i of N total observations giving which
@@ -265,7 +268,7 @@ multilogit_PG_C <- function(Y, X, n_sample = 1000L, n_burn = 200L, probs = TRUE,
 #'   the observation being classified into each of the C categories.
 #' @examples 
 #' Y <- matrix(0, nrow = 150, ncol = 3)
-#' Y <- sapply(c(1,2,3), \(x) Y[, x] <- as.numeric((as.numeric(iris$Species) == x) ))
+#' Y <- sapply(c(1,2,3), function(x) as.numeric(as.numeric(iris$Species) == x))
 #' X <- cbind(1, iris[ , 1:4])
 #' X <- as.matrix(X)
 #' v <- diag(1, ncol(X))

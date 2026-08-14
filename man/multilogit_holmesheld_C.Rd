@@ -65,8 +65,8 @@ out <- multilogit_holmesheld_C(Y, X, v, n_sample = 4000, n_burn = 2000)
 checking. \code{mulitlogit_hh_inv_C} for an alternative function which is faster,
 but may have increased errors in matrix inversions.
 
-Other Holmes-Held methods.: 
-\code{\link{multilogit_hh_inv_C}()},
-\code{\link{multilogit_holmesheld}()}
+Other Holmes-Held methods.:
+\code{\link[=multilogit_hh_inv_C]{multilogit_hh_inv_C()}},
+\code{\link[=multilogit_holmesheld]{multilogit_holmesheld()}}
 }
 \concept{Holmes-Held methods.}

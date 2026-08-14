@@ -15,7 +15,7 @@ multilogit(
   prior_mean = NULL,
   prior_var = NULL,
   reference_cat = NULL,
-  probs = TRUE,
+  probs = FALSE,
   progress = TRUE
 )
 }
@@ -34,8 +34,11 @@ output after burn-in.}
 \item{n_burn}{non-negative integer giving the number of samples of burn-in
 before the chain output is saved.}
 
-\item{n_sigma_check}{non-negative integer gives the period for the number of
+\item{n_sigma_check}{positive integer giving the period for the number of
 samples on which to automatically tune the step size of the random walk.}
+
+\item{step_size}{finite positive standard deviation for the random-walk
+proposal distribution.}
 
 \item{prior}{character with either values "flat" or "normal"}
 
@@ -45,14 +48,19 @@ prior = "normal".}
 
 \item{prior_var}{a P by P matrix giving the covariance matrix of the prior
 coefficients. Note that covariance structure is assumed to be constant across
-categories. Must be a positive semi-definite matrix. Only use with prior = 
+categories. Must be a positive-definite matrix. Only use with prior =
 "normal".}
 
 \item{reference_cat}{Either NULL or an integer between 1 and C where C is
 the total number of categories. If left NULL, coefficients for all
 categories will be generated, leading to a loss of identifiability in the
-coefficients. If an integer, all of the coefficents for that category will
+coefficients. If an integer, all of the coefficients for that category will
 be held constant at 0.}
+
+\item{probs}{logical; if TRUE, return fitted category probabilities for each
+retained draw.}
+
+\item{progress}{logical; if TRUE, print periodic progress updates.}
 }
 \value{
 List object containing posterior_coef, the chain of coefficient
@@ -62,7 +70,7 @@ being classified into each of the C categories.
 }
 \description{
 This function implements a data augmentation method for
-multinomial logisitic regression using MCMC. The data augmentation method is
+multinomial logistic regression using MCMC. The data augmentation method is
 outlined in a paper by Jared D. Fisher and Kyle R. McEvoy titled
 "Bayesian Multinomial Logistic Regression for Numerous Categories",
 currently a work in progress. The sampler uses a Random-Walk Metropolis

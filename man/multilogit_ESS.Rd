@@ -12,7 +12,7 @@ multilogit_ESS(
   prior_mean = NULL,
   prior_var = NULL,
   reference_cat = NULL,
-  probs = TRUE,
+  probs = FALSE,
   progress = TRUE
 )
 }
@@ -38,13 +38,12 @@ Giving the mean for the normal prior on the coefficient vector.}
 
 \item{prior_var}{a P by P matrix giving the covariance matrix of the prior
 coefficients. Note that covariance structure is assumed to be constant across
-categories. Must be a positive semi-definite matrix. Only use with prior = 
-"normal".}
+categories. Must be a positive-definite matrix.}
 
 \item{reference_cat}{Either NULL or an integer between 1 and C where C is
 the total number of categories. If left NULL, coefficients for all
 categories will be generated, leading to a loss of identifiability in the
-coefficients. If an integer, all of the coefficents for that category will
+coefficients. If an integer, all of the coefficients for that category will
 be held constant at 0.}
 
 \item{probs}{logical If TRUE, for each non-burn chain sample of coefficients
@@ -62,7 +61,7 @@ being classified into each of the C categories.
 \description{
 This function is an R wrapper for the function \code{multilogit_C_ESS}. The wrapper
 contains error-checking that the C++ function lacks. \code{multilogit_C_ESS} implements a
-data augmentation method for multinomial logisitic regression using MCMC.
+data augmentation method for multinomial logistic regression using MCMC.
 The data augmentation method is outlined in a paper by Jared D. Fisher and Kyle R. McEvoy titled
 "Bayesian Multinomial Logistic Regression for Numerous Categories", currently a work in progress.
 

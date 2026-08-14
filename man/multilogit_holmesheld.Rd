@@ -39,9 +39,9 @@ non-burn samples.}
 
 \item{progress}{logical If TRUE the function will report its progress each thousandth iteration.}
 
-\item{fast}{logical If TRUE the wrapper function will call \code{multilogit_hh_inv_C} as opposed to 
-\code{mulitlogit_holmesheld_C}. \code{multilogit_hh_inv_C} uses faster matrix inverse functions so is faster, 
-but is more prone to errors due to numerical tolerance issues when inverting the matrices.}
+\item{fast}{logical If TRUE the wrapper calls \code{multilogit_hh_inv_C}
+instead of \code{multilogit_holmesheld_C}. Retained for backward
+compatibility; both implementations now use stable precision factorizations.}
 }
 \value{
 List object containing posterior_coef, the chain of coefficient 
@@ -72,8 +72,8 @@ out <- multilogit_holmesheld(Y, X, v, n_sample = 2000, n_burn = 1000)
 \code{multilogit_holmesheld_C} and \code{multilogit_hh_inv_C} for the C++ functions without
 error checking.
 
-Other Holmes-Held methods.: 
-\code{\link{multilogit_hh_inv_C}()},
-\code{\link{multilogit_holmesheld_C}()}
+Other Holmes-Held methods.:
+\code{\link[=multilogit_hh_inv_C]{multilogit_hh_inv_C()}},
+\code{\link[=multilogit_holmesheld_C]{multilogit_holmesheld_C()}}
 }
 \concept{Holmes-Held methods.}

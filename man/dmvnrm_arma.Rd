@@ -12,8 +12,10 @@ dmvnrm_arma(x, mean, sigma, logd = FALSE)
 \item{mean}{numeric vector The vector of means for the Multivariate Normal Distribution.
 should be the same length as x.}
 
-\item{sigma}{numeric matrix Should be a square positive semi-definite Covariance matrix for the desired
+\item{sigma}{numeric matrix Should be a square positive-definite covariance matrix for the desired
 multivariate normal distribution. Each dimension should be equal to the length of x.}
+
+\item{logd}{logical; if TRUE, return the log density.}
 }
 \value{
 numeric The value of the pdf of the given Multivariate Normal distribution at the specified x value.

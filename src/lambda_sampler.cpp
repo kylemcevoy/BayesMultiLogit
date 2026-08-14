@@ -144,11 +144,15 @@ double lambda_sampler(double r)
   double U2{ 0 }; 
   double lambdaDraw{ 0 };
   int OK{ 0 };
-  double R{ std::abs(r) };
+  // The limiting distribution at r = 0 is well behaved, but the expression
+  // below divides by r.  Guard against exact or subnormal residuals.
+  double R{ std::max(std::abs(r), 1e-12) };
 
   
+  std::size_t attempts = 0;
   do
   {
+    if ((++attempts & 1023U) == 0U) Rcpp::checkUserInterrupt();
     // Rcpp handles RNGState calls from R on export, no need to set a true random seed in function.
     // if code needs to be vectorized switch to Rcpp::rnorm/runif.
     

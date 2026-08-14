@@ -40,6 +40,7 @@ colvec rpg(colvec shape, colvec scale) {
   int d = shape.n_elem;
   colvec result(d);
   for(int i=0; i<d; i++) {
+    if ((i & 63) == 0) Rcpp::checkUserInterrupt();
     result[i] = pg.draw(shape(i), scale(i), r);
   }
 #ifdef USE_R
@@ -60,4 +61,3 @@ SEXP helloPG(int n, double z) {
   return Rcpp::List::create(Rcpp::Named("draws")=out
 			    );
 }
-
